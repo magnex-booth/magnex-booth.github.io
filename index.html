@@ -1,4 +1,8 @@
 <!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0912">
+<meta name="robots" content="noindex">
+<title>MAGNEX Booth · פולרויד מהטלפון</title>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;800;900&display=swap" rel="stylesheet">
 <style>
 /* MAGNEX Booth — guest phone page (served by the customer's own Google Apps Script). One photo per scan. */
@@ -10,7 +14,7 @@ html[data-theme="party"]{--bg:#0a0618;--grad:linear-gradient(135deg,#ff2d9b,#a85
 html[data-theme="birthday"]{--bg:#0a1626;--grad:linear-gradient(135deg,#ff7a59,#ffd23d 55%,#4dd0a0)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:#fff;font-family:"Heebo",-apple-system,system-ui,"Segoe UI",Arial,sans-serif}
-main{max-width:520px;margin:0 auto;padding:18px 18px 28px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
+main{max-width:520px;margin:0 auto;padding:max(18px,env(safe-area-inset-top)) 18px max(28px,env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
 h1{margin:0;font-size:clamp(24px,7vw,34px);font-weight:900;line-height:1.15}
 .sub{color:var(--muted);font-size:17px;line-height:1.5;margin:0}
 .btn{font-family:inherit;font-weight:800;border:0;cursor:pointer;border-radius:999px;padding:18px 26px;font-size:20px;width:100%}
