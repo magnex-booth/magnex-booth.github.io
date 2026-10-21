@@ -1,0 +1,197 @@
+<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+/* MAGNEX Booth — guest phone page (served by the customer's own Google Apps Script). One photo per scan. */
+:root{--bg:#0b0912;--surface:#1b1626;--line:rgba(255,255,255,.16);--muted:#c3bcd2;--p2:#ff8a3d;
+  --grad:linear-gradient(135deg,#ff3d6e,#ff8a3d 60%,#ffd23d);color-scheme:dark}
+html[data-theme="wedding"]{--bg:#140a10;--grad:linear-gradient(135deg,#eccf96,#e7a9bd)}
+html[data-theme="mitzvah"]{--bg:#070b20;--grad:linear-gradient(135deg,#f1cc63,#5b84ff)}
+html[data-theme="party"]{--bg:#0a0618;--grad:linear-gradient(135deg,#ff2d9b,#a855f7 55%,#22d3ee)}
+html[data-theme="birthday"]{--bg:#0a1626;--grad:linear-gradient(135deg,#ff7a59,#ffd23d 55%,#4dd0a0)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:#fff;font-family:"Heebo",-apple-system,system-ui,"Segoe UI",Arial,sans-serif}
+main{max-width:520px;margin:0 auto;padding:18px 18px 28px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
+h1{margin:0;font-size:clamp(24px,7vw,34px);font-weight:900;line-height:1.15}
+.sub{color:var(--muted);font-size:17px;line-height:1.5;margin:0}
+.btn{font-family:inherit;font-weight:800;border:0;cursor:pointer;border-radius:999px;padding:18px 26px;font-size:20px;width:100%}
+.btn-primary{background:var(--grad);color:#1a0d14}
+.btn-ghost{background:rgba(255,255,255,.08);color:#fff;border:1.5px solid var(--line)}
+.btn:focus-visible,.fchip:focus-visible{outline:3px solid #ffd23d;outline-offset:3px}
+.big{font-size:80px;line-height:1}
+.card{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:14px}
+#prev{display:block;width:100%;height:auto;border-radius:6px;background:#fff;touch-action:none;box-shadow:0 16px 40px rgba(0,0,0,.5)}
+.hint{color:var(--muted);font-size:14px;margin:0}
+.fbox{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.fchip{font-family:inherit;font-weight:800;font-size:15px;padding:10px 14px;border-radius:999px;border:1.5px solid var(--line);background:#0f0c17;color:#fff}
+.fchip.on{border-color:var(--p2);background:#2a1a22}
+.slrow{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px}
+.slrow input{flex:1;accent-color:#ff8a3d;height:28px}
+.spinner{width:70px;height:70px;border-radius:50%;border:7px solid rgba(255,255,255,.15);border-top-color:#ff3d6e;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#doneImg{width:62%;border-radius:6px;box-shadow:0 14px 34px rgba(0,0,0,.5);transform:rotate(-3deg)}
+footer{color:var(--muted);font-size:12.5px}
+[hidden]{display:none!important}
+</style></head><body>
+<main>
+  <h1 id="title">MAGNEX Booth</h1>
+  <section data-step="loading" aria-live="polite" style="display:flex;justify-content:center;padding:40px 0"><div class="spinner" role="img" aria-label="טוען"></div></section>
+  <section data-step="start" hidden style="width:100%;display:flex;flex-direction:column;gap:14px">
+    <div class="big" aria-hidden="true">📸</div>
+    <p class="sub">מצלמים תמונה אחת — והיא מודפסת כפולרויד בעמדה, עם המסגרת של האירוע.</p>
+    <button class="btn btn-primary" id="shoot" type="button">📸 צלמו סלפי</button>
+    <button class="btn btn-ghost" id="shootBack" type="button">📷 צילום במצלמה האחורית</button>
+  </section>
+  <section data-step="edit" hidden class="card" aria-label="עריכת התמונה">
+    <canvas id="prev" role="img" aria-label="תצוגה מקדימה של הפולרויד"></canvas>
+    <p class="hint">גררו את התמונה כדי למקם אותה במסגרת</p>
+    <label class="slrow"><span>זום</span><input type="range" id="zoom" min="1" max="2.5" step="0.05" value="1" dir="ltr"></label>
+    <div class="fbox" id="filters" role="group" aria-label="פילטר"></div>
+    <button class="btn btn-primary" id="send" type="button">🖨 שלחו להדפסה</button>
+    <button class="btn btn-ghost" id="retake" type="button">↺ צלמו שוב</button>
+  </section>
+  <section data-step="sending" hidden aria-live="polite" style="display:flex;flex-direction:column;align-items:center;gap:18px">
+    <div class="spinner" aria-hidden="true"></div><p class="sub">שולחים להדפסה…</p>
+  </section>
+  <section data-step="done" hidden aria-live="polite" style="display:flex;flex-direction:column;align-items:center;gap:16px">
+    <img id="doneImg" alt="הפולרויד שלכם">
+    <h1>נשלח להדפסה! 🎉</h1>
+    <p class="sub">הפולרויד יוצא בעמדה בעוד כמה שניות.<br>רוצים עוד אחד? סרקו שוב את הקוד בעמדה.</p>
+  </section>
+  <section data-step="msg" hidden aria-live="assertive" style="display:flex;flex-direction:column;align-items:center;gap:12px">
+    <div class="big" id="msgI" aria-hidden="true">⚠️</div><h1 id="msgT"></h1><p class="sub" id="msgX"></p>
+  </section>
+  <input type="file" id="file" accept="image/*" capture="user" hidden>
+  <footer>MAGNEX Booth · print lazy</footer>
+</main>
+<script id="mbcfg" type="application/json">__CFG__</script>
+<script>
+"use strict";
+/* Two ways this page runs:
+   1. served by the customer's own Google script (old QR codes): the design + token are injected above;
+   2. from the neutral address  https://<host>/#<script id>  (works even for kids' supervised Google accounts):
+      it asks the customer's script for the design + a one-time token, WITHOUT any Google sign-in (credentials omitted). */
+var $ = function (s) { return document.querySelector(s); };
+var S = { img: null, zoom: 1, ox: 0, oy: 0, filter: "none", frame: null, busy: false, done: false };
+var CFG = null, TOKEN = "__TOKEN__", RELAY = null;
+function step(n) { document.querySelectorAll("[data-step]").forEach(function (e) { e.hidden = e.getAttribute("data-step") !== n; }); window.scrollTo(0, 0); }
+function msg(t, x, i) { $("#msgT").textContent = t; $("#msgX").textContent = x || ""; $("#msgI").textContent = i || "⚠️"; step("msg"); }
+function relayFromHash() {
+  var h = decodeURIComponent((location.hash || "").replace(/^#/, "")).trim();
+  if (/^http:\/\/127\.0\.0\.1:\d+\/exec$/.test(h)) return h;          // local tests only
+  if (/^[\w-]{20,}$/.test(h)) return "https://script.google.com/macros/s/" + h + "/exec";
+  var m = /^([\w.-]+)\/([\w-]{20,})$/.exec(h);                    // Google Workspace accounts: <domain>/<id>
+  return m ? "https://script.google.com/a/macros/" + m[1] + "/s/" + m[2] + "/exec" : null;
+}
+(function init() {
+  var raw = ($("#mbcfg").textContent || "").trim();
+  if (raw.indexOf("__CF" + "G__") < 0) { try { CFG = JSON.parse(raw); } catch (e) {} if (CFG) return boot(); }
+  RELAY = relayFromHash();
+  if (!RELAY) return msg("הקוד לא שלם", "סרקו שוב את הקוד שעל מסך העמדה.");
+  fetch(RELAY + "?a=page", { credentials: "omit", cache: "no-store" }).then(function (r) { return r.json(); }).then(function (j) {
+    if (!j || !j.ok) return msg("הצילום מהטלפון כבוי כרגע", (j && j.msg) || "העמדה לא פעילה עכשיו. נסו שוב כשהיא דולקת 🙂", "📸");
+    CFG = j.cfg || {}; TOKEN = j.token; boot();
+  }).catch(function () { msg("אין חיבור לעמדה", "בדקו שיש אינטרנט בטלפון וסרקו שוב.", "📶"); });
+})();
+function boot() {
+var WIN = CFG.win || null;                                                          // photo window inside the preview (fractions)
+var A = CFG.aspect || 1;                                                              // photo window aspect (w/h)
+var FILTERS = [["none", "מקורי"], ["enhance", "משופר"], ["bw", "שחור־לבן"], ["sepia", "ספיה"]];
+/* preview filters in plain pixels (canvas "filter" doesn't work on iPhone Safari). The print itself is filtered on the iPad. */
+function fx(c, k) {
+  if (!k || k === "none") return c;
+  var x = c.getContext("2d"), id = x.getImageData(0, 0, c.width, c.height), d = id.data, i, r, g, b, l, m;
+  var cl = function (v) { return v < 0 ? 0 : v > 255 ? 255 : v; };
+  for (i = 0; i < d.length; i += 4) {
+    r = d[i]; g = d[i + 1]; b = d[i + 2];
+    if (k === "bw") { l = cl((0.36 * r + 0.54 * g + 0.10 * b - 128) * 1.12 + 130); d[i] = d[i + 1] = d[i + 2] = l; }
+    else if (k === "sepia") {
+      l = cl((0.33 * r + 0.55 * g + 0.12 * b - 128) * 1.05 + 128) / 255;
+      d[i] = cl(255 * (0.10 + 0.92 * l)); d[i + 1] = cl(255 * (0.05 + 0.86 * l)); d[i + 2] = cl(255 * (0.02 + 0.70 * l * l + 0.08 * l));
+    } else if (k === "enhance") {
+      m = (r + g + b) / 3;
+      r = m + (r - m) * 1.22; g = m + (g - m) * 1.22; b = m + (b - m) * 1.22;
+      d[i] = cl((r - 128) * 1.06 + 132); d[i + 1] = cl((g - 128) * 1.06 + 132); d[i + 2] = cl((b - 128) * 1.06 + 131);
+    }
+  }
+  x.putImageData(id, 0, 0);
+  return c;
+}
+if (CFG.theme && CFG.theme !== "classic") document.documentElement.setAttribute("data-theme", CFG.theme);
+$("#title").textContent = (CFG.title || CFG.event || "MAGNEX Booth");
+if (CFG.prev) { var fi = new Image(); fi.onload = function () { S.frame = fi; if (S.img) draw(); }; fi.src = CFG.prev; }
+/* crop of the guest's photo to the frame window, with zoom + drag */
+function crop(maxSide) {
+  var im = S.img, sw = im.width, sh = im.height, cw, ch;
+  if (sw / sh > A) { ch = sh; cw = sh * A; } else { cw = sw; ch = sw / A; }
+  cw /= S.zoom; ch /= S.zoom;
+  var fx = (sw - cw) / 2, fy = (sh - ch) / 2, k = Math.min(1, maxSide / Math.max(cw, ch));
+  var c = document.createElement("canvas"); c.width = Math.round(cw * k); c.height = Math.round(ch * k);
+  c.getContext("2d").drawImage(im, fx + S.ox * fx, fy + S.oy * fy, cw, ch, 0, 0, c.width, c.height);
+  return c;
+}
+function draw() {
+  var cv = $("#prev"), x = cv.getContext("2d"), fr = S.frame;
+  var W = fr ? fr.naturalWidth : 600, H = fr ? fr.naturalHeight : Math.round(600 / 0.75);
+  cv.width = W; cv.height = H;
+  var w = (fr && WIN) ? WIN : { x: 0.06, y: 0.045, w: 0.88, h: 0.88 * 0.75 };
+  var px = w.x * W, py = w.y * H, pw = w.w * W, ph = w.h * H, ph2 = fx(crop(720), S.filter);
+  x.fillStyle = "#fff"; x.fillRect(0, 0, W, H);
+  if (fr && !CFG.under) x.drawImage(fr, 0, 0);
+  x.save();
+  if (CFG.round) { var r = Math.min(pw, ph) * 0.027; x.beginPath(); x.moveTo(px + r, py); x.arcTo(px + pw, py, px + pw, py + ph, r); x.arcTo(px + pw, py + ph, px, py + ph, r); x.arcTo(px, py + ph, px, py, r); x.arcTo(px, py, px + pw, py, r); x.closePath(); x.clip(); }
+  x.drawImage(ph2, px, py, pw, ph);
+  x.restore();
+  if (fr && CFG.under) x.drawImage(fr, 0, 0);
+}
+function load(file) {
+  if (!file) return;
+  var url = URL.createObjectURL(file), im = new Image();
+  im.onload = function () {
+    var k = Math.min(1, 2400 / Math.max(im.naturalWidth, im.naturalHeight));
+    var c = document.createElement("canvas"); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+    c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+    S.img = c; S.zoom = 1; S.ox = 0; S.oy = 0; $("#zoom").value = 1; step("edit"); draw();
+  };
+  im.onerror = function () { msg("לא הצלחתי לפתוח את התמונה", "נסו לצלם שוב.", "📷"); };
+  im.src = url;
+}
+var inp = $("#file");
+function shoot(f) { inp.setAttribute("capture", f); inp.click(); }
+$("#shoot").onclick = function () { shoot("user"); };
+$("#shootBack").onclick = function () { shoot("environment"); };
+$("#retake").onclick = function () { shoot("user"); };
+inp.onchange = function () { load(inp.files && inp.files[0]); inp.value = ""; };
+$("#zoom").oninput = function (e) { S.zoom = +e.target.value; draw(); };
+if (CFG.filtersOn !== false) {
+  $("#filters").innerHTML = FILTERS.map(function (f) { return '<button type="button" class="fchip' + (f[0] === "none" ? " on" : "") + '" data-f="' + f[0] + '">' + f[1] + "</button>"; }).join("");
+  $("#filters").querySelectorAll(".fchip").forEach(function (b) { b.onclick = function () {
+    S.filter = b.getAttribute("data-f"); $("#filters").querySelectorAll(".fchip").forEach(function (q) { q.classList.toggle("on", q === b); }); draw(); }; });
+} else $("#filters").hidden = true;
+var cv = $("#prev"), drag = null;
+cv.addEventListener("pointerdown", function (e) { if (!S.img) return; drag = { x: e.clientX, y: e.clientY, ox: S.ox, oy: S.oy }; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener("pointermove", function (e) {
+  if (!drag) return; var r = cv.getBoundingClientRect(), k = 2.4 / Math.max(1, r.width);
+  S.ox = Math.max(-1, Math.min(1, drag.ox - (e.clientX - drag.x) * k * S.zoom));
+  S.oy = Math.max(-1, Math.min(1, drag.oy - (e.clientY - drag.y) * k * S.zoom)); draw();
+});
+["pointerup", "pointercancel"].forEach(function (ev) { cv.addEventListener(ev, function () { drag = null; }); });
+$("#send").onclick = function () {
+  if (S.busy || S.done || !S.img) return;
+  S.busy = true; step("sending");
+  var data = crop(1280).toDataURL("image/jpeg", 0.88);
+  var ok = function (r) {
+    S.busy = false;
+    if (r && r.ok) { S.done = true; $("#doneImg").src = $("#prev").toDataURL("image/jpeg", 0.8); step("done"); }
+    else if (r && r.used) msg("הקוד הזה כבר נוצל", "כל סריקה = הדפסה אחת. לעוד הדפסה — סרקו שוב את הקוד בעמדה.", "🔁");
+    else msg("ההדפסה לא נשלחה", (r && r.error) || "נסו שוב בעוד רגע.");
+  };
+  var fail = function () { S.busy = false; msg("אין חיבור", "בדקו שיש אינטרנט בטלפון ונסו שוב.", "📶"); };
+  if (RELAY) {      // neutral page: plain request, no Google sign-in involved (text/plain = no CORS preflight)
+    fetch(RELAY + "?a=upload", { method: "POST", credentials: "omit", headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ token: TOKEN, data: data, filter: S.filter }) }).then(function (r) { return r.json(); }).then(ok).catch(fail);
+  } else google.script.run.withSuccessHandler(ok).withFailureHandler(fail).upload(TOKEN, data, S.filter);
+};
+step("start");
+}
+</script>
+</body></html>
