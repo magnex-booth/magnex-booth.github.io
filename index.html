@@ -49,6 +49,7 @@ footer{color:var(--muted);font-size:12.5px}
     <canvas id="prev" role="img" aria-label="תצוגה מקדימה של הפולרויד"></canvas>
     <p class="hint">גררו את התמונה כדי למקם אותה במסגרת</p>
     <label class="slrow"><span>זום</span><input type="range" id="zoom" min="1" max="2.5" step="0.05" value="1" dir="ltr"></label>
+    <div class="fbox" id="decos" role="group" aria-label="קישוט" hidden></div>
     <div class="fbox" id="filters" role="group" aria-label="פילטר"></div>
     <button class="btn btn-primary" id="send" type="button">🖨 שלחו להדפסה</button>
     <button class="btn btn-ghost" id="retake" type="button">↺ צלמו שוב</button>
@@ -75,7 +76,7 @@ footer{color:var(--muted);font-size:12.5px}
    2. from the neutral address  https://<host>/#<script id>  (works even for kids' supervised Google accounts):
       it asks the customer's script for the design + a one-time token, WITHOUT any Google sign-in (credentials omitted). */
 var $ = function (s) { return document.querySelector(s); };
-var S = { img: null, zoom: 1, ox: 0, oy: 0, filter: "none", frame: null, busy: false, done: false };
+var S = { deco: "none", img: null, zoom: 1, ox: 0, oy: 0, filter: "none", frame: null, busy: false, done: false };
 var CFG = null, TOKEN = "__TOKEN__", RELAY = null;
 function step(n) { document.querySelectorAll("[data-step]").forEach(function (e) { e.hidden = e.getAttribute("data-step") !== n; }); window.scrollTo(0, 0); }
 function msg(t, x, i) { $("#msgT").textContent = t; $("#msgX").textContent = x || ""; $("#msgI").textContent = i || "⚠️"; step("msg"); }
@@ -133,12 +134,66 @@ function crop(maxSide) {
   c.getContext("2d").drawImage(im, fx + S.ox * fx, fy + S.oy * fy, cw, ch, 0, 0, c.width, c.height);
   return c;
 }
+/* decorations over the photo (same drawings as the iPad) — baked into the photo that is sent */
+var DECOS = [["none", "בלי"], ["hearts", "💗 לבבות"], ["sparkle", "✨ נצנצים"], ["comic", "💥 קומיקס"], ["party", "🎈 מסיבה"]];
+var CONF_COLS = ["#ffd23d", "#3d7bff", "#2fb6a6", "#ff8a3d", "#ff6fae"];
+function rng(seed) { var s = seed >>> 0 || 1; return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+function heartPath(x, cx, cy, r) {
+  x.beginPath(); x.moveTo(cx, cy + r * 0.9);
+  x.bezierCurveTo(cx - r * 1.6, cy - r * 0.1, cx - r * 0.75, cy - r * 1.25, cx, cy - r * 0.45);
+  x.bezierCurveTo(cx + r * 0.75, cy - r * 1.25, cx + r * 1.6, cy - r * 0.1, cx, cy + r * 0.9); x.closePath();
+}
+function starPath(x, cx, cy, r) { x.beginPath(); for (var i = 0; i < 8; i++) { var a = i * Math.PI / 4 - Math.PI / 2, rr = i % 2 ? r * 0.28 : r; x.lineTo(cx + rr * Math.cos(a), cy + rr * Math.sin(a)); } x.closePath(); }
+function burstPath(x, cx, cy, r, n) { x.beginPath(); for (var i = 0; i < n * 2; i++) { var a = i * Math.PI / n, rr = i % 2 ? r * 0.62 : r; x.lineTo(cx + rr * Math.cos(a), cy + rr * Math.sin(a) * 0.82); } x.closePath(); }
+function decoText(x, t, cx, cy, size, fill) {
+  x.font = "900 " + size + "px Heebo, 'Arial Black', sans-serif"; x.direction = "ltr"; x.textAlign = "center"; x.textBaseline = "middle";
+  x.lineJoin = "round"; x.lineWidth = size * 0.16; x.strokeStyle = "#17121f"; x.strokeText(t, cx, cy); x.fillStyle = fill; x.fillText(t, cx, cy);
+}
+function drawDeco(x, kind, X, Y, W, H) {
+  if (!kind || kind === "none") return;
+  var s = Math.min(W, H), R = rng(31), i;
+  x.save(); x.beginPath(); x.rect(X, Y, W, H); x.clip();
+  x.lineJoin = "round"; x.shadowColor = "rgba(0,0,0,.25)"; x.shadowBlur = s * 0.02;
+  if (kind === "hearts") {
+    var hs = [[.1, .12, .09], [.24, .07, .05], [.88, .1, .08], [.76, .05, .045], [.92, .3, .045], [.07, .34, .04], [.9, .86, .06], [.1, .88, .05]], hc = ["#ff3d6e", "#ff7aa5", "#ff4f8b", "#ffb3c7"];
+    for (i = 0; i < hs.length; i++) { heartPath(x, X + hs[i][0] * W, Y + hs[i][1] * H, hs[i][2] * s); x.fillStyle = hc[i % hc.length]; x.fill(); x.lineWidth = s * 0.008; x.strokeStyle = "#fff"; x.stroke(); }
+  } else if (kind === "sparkle") {
+    var ss = [[.09, .1, .08], [.2, .2, .035], [.9, .12, .07], [.8, .05, .03], [.93, .4, .04], [.06, .5, .035], [.88, .9, .07], [.12, .9, .05], [.5, .05, .03]];
+    for (i = 0; i < ss.length; i++) { starPath(x, X + ss[i][0] * W, Y + ss[i][1] * H, ss[i][2] * s); x.fillStyle = i % 3 ? "#ffe680" : "#ffffff"; x.fill(); }
+  } else if (kind === "comic") {
+    var bx = X + W * 0.05, by = Y + H * 0.05, bw = W * 0.34, bh = H * 0.17;
+    x.fillStyle = "#fff"; x.strokeStyle = "#17121f"; x.lineWidth = s * 0.012;
+    x.beginPath(); x.ellipse(bx + bw / 2, by + bh / 2, bw / 2, bh / 2, 0, 0, 7); x.fill(); x.stroke();
+    x.beginPath(); x.moveTo(bx + bw * 0.55, by + bh * 0.92); x.lineTo(bx + bw * 0.78, by + bh * 1.45); x.lineTo(bx + bw * 0.74, by + bh * 0.88); x.closePath(); x.fill(); x.stroke();
+    x.shadowBlur = 0; decoText(x, "WOW!", bx + bw / 2, by + bh / 2, bh * 0.5, "#ff3d6e");
+    var cx = X + W * 0.83, cy = Y + H * 0.85, r = s * 0.15;
+    burstPath(x, cx, cy, r, 11); x.fillStyle = "#ffd23d"; x.fill(); x.lineWidth = s * 0.012; x.strokeStyle = "#17121f"; x.stroke();
+    decoText(x, "POW!", cx, cy, r * 0.5, "#3d7bff");
+  } else if (kind === "party") {
+    var balloon = function (u, v, rr, c) {
+      var cx = X + u * W, cy = Y + v * H;
+      x.beginPath(); x.ellipse(cx, cy, rr * s * 0.8, rr * s, 0, 0, 7); x.fillStyle = c; x.fill();
+      x.shadowBlur = 0; x.fillStyle = "rgba(255,255,255,.55)"; x.beginPath(); x.ellipse(cx - rr * s * 0.28, cy - rr * s * 0.38, rr * s * 0.16, rr * s * 0.26, -0.5, 0, 7); x.fill();
+      x.strokeStyle = "rgba(255,255,255,.9)"; x.lineWidth = s * 0.005; x.beginPath(); x.moveTo(cx, cy + rr * s);
+      x.quadraticCurveTo(cx - rr * s * 0.5, cy + rr * s * 1.8, cx + rr * s * 0.1, cy + rr * s * 2.6); x.stroke();
+    };
+    balloon(.1, .14, .085, "#ff3d6e"); balloon(.22, .1, .07, "#ffd23d"); balloon(.9, .13, .085, "#3d7bff"); balloon(.78, .09, .065, "#2fb6a6");
+    for (i = 0; i < 26; i++) {
+      var u = R(), v = R() * 0.22;
+      x.save(); x.translate(X + u * W, Y + v * H); x.rotate(R() * 3);
+      x.fillStyle = CONF_COLS[(R() * CONF_COLS.length) | 0]; x.fillRect(-s * 0.012, -s * 0.006, s * 0.024, s * 0.012); x.restore();
+    }
+  }
+  x.restore();
+}
+/* the guest's photo cropped to the window, with the chosen decoration on it */
+function photo(maxSide) { var c = crop(maxSide); drawDeco(c.getContext("2d"), S.deco, 0, 0, c.width, c.height); return c; }
 function draw() {
   var cv = $("#prev"), x = cv.getContext("2d"), fr = S.frame;
   var W = fr ? fr.naturalWidth : 600, H = fr ? fr.naturalHeight : Math.round(600 / 0.75);
   cv.width = W; cv.height = H;
   var w = (fr && WIN) ? WIN : { x: 0.06, y: 0.045, w: 0.88, h: 0.88 * 0.75 };
-  var px = w.x * W, py = w.y * H, pw = w.w * W, ph = w.h * H, ph2 = fx(crop(720), S.filter);
+  var px = w.x * W, py = w.y * H, pw = w.w * W, ph = w.h * H, ph2 = fx(photo(720), S.filter);
   x.fillStyle = "#fff"; x.fillRect(0, 0, W, H);
   if (fr && !CFG.under) x.drawImage(fr, 0, 0);
   x.save();
@@ -166,6 +221,12 @@ $("#shootBack").onclick = function () { shoot("environment"); };
 $("#retake").onclick = function () { shoot("user"); };
 inp.onchange = function () { load(inp.files && inp.files[0]); inp.value = ""; };
 $("#zoom").oninput = function (e) { S.zoom = +e.target.value; draw(); };
+if (CFG.decoOn) {
+  $("#decos").hidden = false;
+  $("#decos").innerHTML = DECOS.map(function (d) { return '<button type="button" class="fchip' + (d[0] === "none" ? " on" : "") + '" data-d="' + d[0] + '">' + d[1] + "</button>"; }).join("");
+  $("#decos").querySelectorAll(".fchip").forEach(function (b) { b.onclick = function () {
+    S.deco = b.getAttribute("data-d"); $("#decos").querySelectorAll(".fchip").forEach(function (q) { q.classList.toggle("on", q === b); }); draw(); }; });
+}
 if (CFG.filtersOn !== false) {
   $("#filters").innerHTML = FILTERS.map(function (f) { return '<button type="button" class="fchip' + (f[0] === "none" ? " on" : "") + '" data-f="' + f[0] + '">' + f[1] + "</button>"; }).join("");
   $("#filters").querySelectorAll(".fchip").forEach(function (b) { b.onclick = function () {
@@ -182,7 +243,7 @@ cv.addEventListener("pointermove", function (e) {
 $("#send").onclick = function () {
   if (S.busy || S.done || !S.img) return;
   S.busy = true; step("sending");
-  var data = crop(1280).toDataURL("image/jpeg", 0.88);
+  var data = photo(1280).toDataURL("image/jpeg", 0.88);
   var ok = function (r) {
     S.busy = false;
     if (r && r.ok) { S.done = true; $("#doneImg").src = $("#prev").toDataURL("image/jpeg", 0.8); step("done"); }
