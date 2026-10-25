@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="רישיונות">
+<meta name="theme-color" content="#14121a">
+<link rel="apple-touch-icon" href="admin-icon.png">
+<title>MAGNEX · רישיונות</title>
+<style>
+:root{--bg:#14121a;--card:#1d1a26;--line:#2f2a3b;--ink:#f3f1f8;--mut:#9a93ab;--chip:#2a2535;--ok:#15a06a;--okt:#5fd6a2;--bad:#e5484d;--badt:#ff8a92;--acc:#ff8a1f}
+@media (prefers-color-scheme:light){:root{--bg:#f4f3f7;--card:#fff;--line:#e3e0ea;--ink:#1b1726;--mut:#6d6680;--chip:#efedf4;--okt:#0f7a51;--badt:#b3202d}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;-webkit-text-size-adjust:100%}
+header{position:sticky;top:0;z-index:5;background:var(--bg);padding:14px 16px 10px;border-bottom:1px solid var(--line);padding-top:max(14px,env(safe-area-inset-top))}
+.top{display:flex;align-items:center;gap:10px}
+.top h1{font-size:19px;margin:0;flex:1}
+.logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#e9283f,#ff8a1f);display:grid;place-items:center;font-size:17px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--mut);margin-top:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--mut)}
+.dot.on{background:var(--ok)}.dot.off{background:var(--acc)}
+main{padding:12px 14px 40px;max-width:760px;margin:0 auto}
+h2{font-size:15px;margin:18px 4px 8px;color:var(--mut);font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin:8px 0}
+.card.pend{border-color:color-mix(in srgb,var(--bad) 45%,var(--line));background:color-mix(in srgb,var(--bad) 7%,var(--card))}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.nm{font-weight:700;font-size:16px}
+.mut{color:var(--mut);font-size:12.5px}
+.code{font:12px ui-monospace,Menlo,monospace;color:var(--mut);direction:ltr}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pc{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;border-radius:9px;padding:4px 6px 4px 10px}
+.pc.ok{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--okt)}
+.pc.rv{background:color-mix(in srgb,var(--bad) 22%,transparent);color:var(--badt);border:1px solid color-mix(in srgb,var(--bad) 45%,transparent)}
+.pc.wait{background:color-mix(in srgb,var(--acc) 18%,transparent);color:var(--acc)}
+button,.btn{font:inherit;font-size:14px;border-radius:11px;border:1px solid var(--line);background:var(--chip);color:var(--ink);padding:9px 14px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;-webkit-tap-highlight-color:transparent}
+button.sm{padding:5px 10px;font-size:12.5px;border-radius:8px}
+button.pri{background:linear-gradient(90deg,#e9283f,#ff8a1f);border:0;color:#fff;font-weight:700}
+button.ghost{background:transparent}
+button:disabled{opacity:.5}
+button.arm{background:var(--bad);color:#fff;border-color:var(--bad)}
+.pay{margin:8px 0 4px;font-size:14px}
+.pay b{font-size:16px}
+.links{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+input[type=text],input[type=search]{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 11px;outline:none}
+label.ck{display:inline-flex;align-items:center;gap:6px;background:var(--chip);border-radius:9px;padding:6px 10px;font-size:14px}
+label.ck input{width:18px;height:18px}
+.acts{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.acts .pri{flex:1;justify-content:center}
+.st{margin-top:8px;font-size:13px}
+.st.wait{color:var(--acc)}.st.ok{color:var(--okt)}.st.err{color:var(--badt)}
+.det{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:13.5px}
+.buy{display:flex;gap:8px;flex-wrap:wrap;padding:5px 0;border-top:1px dashed var(--line)}
+.empty{color:var(--mut);text-align:center;padding:16px 4px}
+.toast{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);background:#000c;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw;text-align:center}
+.toast.on{opacity:1}
+.spin{animation:sp 1s linear infinite;display:inline-block}@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="top"><div class="logo">🔑</div><h1>MAGNEX · רישיונות</h1><button class="sm ghost" id="rf" aria-label="רענון">🔄</button></div>
+  <div class="pill"><span class="dot" id="dot"></span><span id="hb">מתחבר…</span></div>
+</header>
+<div id="pair" hidden style="padding:40px 22px;text-align:center;max-width:520px;margin:0 auto">
+  <div style="font-size:54px">📱</div><h2 style="color:var(--ink);font-size:20px;margin:10px 0">אישור המכשיר הזה</h2>
+  <p id="pairTx" style="line-height:1.6">כדי לוודא שזה אתה: באיימק, ב-MAGNEX ← לשונית <b>🔑 רישיונות</b> ← <b>📱 גישה מהטלפון</b> ← לחץ <b>"✅ אשר"</b> ליד המכשיר החדש.</p>
+  <p class="mut" id="pairDev"></p><p class="mut"><span class="spin">⏳</span> ממתין לאישור…</p>
+</div>
+<main id="main">
+  <div class="card" id="home" hidden style="border-color:var(--acc)"><b>✅ המכשיר אושר.</b> כדי שלא תצטרך לאשר שוב: לחץ עכשיו על כפתור השיתוף <b>⬆</b> ← <b>"הוסף למסך הבית"</b>, והשתמש מעכשיו רק באייקון החדש (את הישן אפשר למחוק). <button class="sm" onclick="this.parentNode.hidden=true">הבנתי</button></div>
+  <h2 id="pH">בקשות ממתינות</h2>
+  <div id="pend"><div class="empty">טוען…</div></div>
+  <h2 id="tH" hidden>בתקופת ניסיון</h2>
+  <div id="trial"></div>
+  <h2 id="cH">לקוחות</h2>
+  <input type="search" id="q" placeholder="חיפוש לפי שם, טלפון או קוד מחשב…">
+  <div id="cust"></div>
+  <p class="mut" style="text-align:center;margin-top:22px" id="snapT"></p>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+// the link from the iMac: …/admin.html#k=<key>&d=<device> (the part after # never leaves the phone)
+const HP = new URLSearchParams(location.hash.slice(1));
+const K = HP.get("k") || "";
+const RELAY = "https://script.google.com/macros/s/" + (HP.get("s") || "AKfycbyujhq_7QMAJE6q6yaFFaqi95uG-7qKKTlUnmiRM5PSg8-4-Wktc21x67JOp7MvNMii") + "/exec";
+const PN = { magnex: "MAGNEX", booth: "פוטובוט (תוסף)", "booth-solo": "פוטובוט עצמאי", owner: "הכול (בעלים)", "?": "רישיון" };
+const PAYN = { bit: "ביט", paybox: "פייבוקס", other: "אחר" };
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+let ST = null, OPEN = new Set(), EDIT = {}, LOCAL = [];
+// the device id lives in the link itself (…&d=…): the storage of a page inside Google's frame is not kept on iPhone
+const D_URL = HP.get("d") || "";
+let DEV = D_URL.length >= 16 ? D_URL : "";
+if (!DEV) { try { DEV = localStorage.getItem("mxdev") || ""; } catch (e) { } }
+if (DEV.length < 16) { DEV = [...crypto.getRandomValues(new Uint8Array(18))].map(x => "abcdefghijklmnopqrstuvwxyz0123456789"[x % 36]).join(""); try { localStorage.setItem("mxdev", DEV); } catch (e) { } }
+const UA = /iPad/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1) ? "iPad" : /iPhone/.test(navigator.userAgent) ? "iPhone" : /Android/.test(navigator.userAgent) ? "Android" : "מחשב";
+async function run(a, b) {
+  const r = await fetch(RELAY + "?a=m", { method: "POST", body: JSON.stringify({ k: K, act: a, b: Object.assign({}, b || {}, { dev: DEV }) }) });
+  return r.json();
+}
+let PAIRED = false;
+if (D_URL !== DEV) { try { history.replaceState(null, "", "#k=" + encodeURIComponent(K) + "&d=" + DEV + (HP.get("s") ? "&s=" + HP.get("s") : "")); } catch (e) { } }
+async function pair() {
+  const r = await run("pair", { ua: UA + " · " + new Date().toLocaleDateString("he-IL") });
+  if (r.ok && r.st === "ok") {
+    PAIRED = true; $("#pair").hidden = true; $("#main").hidden = false;
+    if (!window.navigator.standalone && !localStorage.getItem("mxhome")) { $("#home").hidden = false; try { localStorage.setItem("mxhome", "1"); } catch (e) { } }      // opened from an old link without the device id
+    return true;
+  }
+  $("#pair").hidden = false; $("#main").hidden = true;
+  $("#pairDev").textContent = `המכשיר: ${UA} · קוד ${DEV.slice(0, 4).toUpperCase()}`;
+  if (r.st === "no" || r.error === "denied") $("#pairTx").textContent = "המכשיר הזה נדחה באיימק. אם זו טעות – מחק אותו שם ופתח את הקישור מחדש.";
+  else if (!r.ok) $("#pairTx").textContent = r.error === "forbidden" ? "🔒 הקישור לא בתוקף – צור קישור חדש באיימק" : (r.error || "שגיאה");
+  return false;
+}
+function toast(t) { const el = $("#toast"); el.textContent = t; el.classList.add("on"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("on"), 2600); }
+function ago(ms) { const s = Math.max(0, (Date.now() - ms) / 1000); if (s < 60) return "עכשיו"; if (s < 3600) return `לפני ${Math.round(s / 60)} דק'`; if (s < 86400) return `לפני ${Math.round(s / 3600)} שע'`; return new Date(ms).toLocaleDateString("he-IL"); }
+const tel = p => String(p || "").replace(/[^0-9+]/g, ""), wa = p => tel(p).replace(/^\+/, "").replace(/^0/, "972");
+function contact(phone, email) {
+  let h = "";
+  if (tel(phone)) h += `<a class="btn" href="tel:${esc(tel(phone))}">📞 ${esc(phone)}</a><a class="btn" href="https://wa.me/${esc(wa(phone))}" target="_blank">💬 וואטסאפ</a>`;
+  if (email) h += `<a class="btn" href="mailto:${esc(email)}">✉️ ${esc(email)}</a>`;
+  return h ? `<div class="links">${h}</div>` : "";
+}
+function cmdFor(pred) { const all = (ST?.cmds || []).concat(LOCAL); for (let i = all.length - 1; i >= 0; i--) if (pred(all[i])) return all[i]; return null; }
+function stLine(c) {
+  if (!c) return "";
+  if (c.st === "new") return `<div class="st wait">⏳ נשלח לאיימק – יבוצע תוך חצי דקה${ST && Date.now() - ST.hb > 120000 ? " (כשהאיימק יחזור לרשת)" : ""}…</div>`;
+  if (c.st === "done") return `<div class="st ok">✓ ${esc(c.res || "בוצע")}</div>`;
+  return `<div class="st err">⚠ ${esc(c.res || "לא בוצע")}</div>`;
+}
+function armed(btn, fn) {   // two taps for anything that changes a customer's license
+  btn.onclick = () => {
+    if (btn.classList.contains("arm")) { btn.classList.remove("arm"); fn(); return; }
+    const t0 = btn.innerHTML; btn.classList.add("arm"); btn.innerHTML = "לחץ שוב לאישור";
+    setTimeout(() => { if (btn.classList.contains("arm")) { btn.classList.remove("arm"); btn.innerHTML = t0; } }, 3500);
+  };
+}
+async function send(cmd, okMsg) {
+  try {
+    const r = await run("cmd", cmd);
+    if (!r.ok) return toast(r.error || "לא נשלח");
+    LOCAL.push(Object.assign({ id: r.id, t: Date.now(), st: "new" }, { a: cmd.a, body: cmd }));
+    toast(okMsg); render(); setTimeout(load, 4000);
+  } catch (e) { toast("אין חיבור – נסה שוב"); }
+}
+function render() {
+  if (!ST) return;
+  const on = Date.now() - ST.hb < 120000;
+  $("#dot").className = "dot " + (on ? "on" : "off");
+  $("#hb").textContent = !ST.hb ? "האיימק עוד לא התחבר" : on ? "האיימק מחובר – אישורים מתבצעים מיד" : `האיימק לא מחובר מאז ${ago(ST.hb)} – פעולות יבוצעו כשיחזור לרשת`;
+  // pending requests
+  const P = ST.pending || [];
+  $("#pH").textContent = `בקשות ממתינות${P.length ? " · " + P.length : ""}`;
+  $("#pend").innerHTML = P.length ? P.map(r => {
+    const c = cmdFor(x => (x.a === "approve" || x.a === "reject") && x.body?.rid === r.id);
+    const e = EDIT[r.id] || (EDIT[r.id] = { name: r.name || "", products: (r.products || []).slice() });
+    return `<div class="card pend" data-id="${esc(r.id)}">
+      <div class="row"><span class="nm">${esc(r.name || "—")}</span><span class="mut">${ago(r.t)}</span></div>
+      <div class="code">${esc(r.code)}</div>
+      <div class="pay">שילם/ה <b>${esc(r.amount)} ₪</b> ב<b>${esc(PAYN[r.method] || r.method || "?")}</b>${r.payer ? ` · משם: <b>${esc(r.payer)}</b>` : ""}</div>
+      ${contact(r.phone, r.email)}
+      ${c && c.st !== "error" ? stLine(c) : `
+      <div style="margin-top:10px"><input type="text" class="pn" value="${esc(e.name)}" placeholder="שם הלקוח (יופיע ברישיון)"></div>
+      <div class="chips">${["magnex", "booth", "booth-solo"].map(p => `<label class="ck"><input type="checkbox" class="pp" value="${p}" ${e.products.includes(p) ? "checked" : ""}>${PN[p]}</label>`).join("")}</div>
+      <div class="acts"><button class="pri ap">✅ התשלום התקבל – הפעל</button><button class="rj">✖ דחה</button></div>${c ? stLine(c) : ""}`}
+    </div>`;
+  }).join("") : `<div class="empty">אין בקשות ממתינות 🎉</div>`;
+  $("#pend").querySelectorAll(".card.pend").forEach(card => {
+    const id = card.dataset.id, r = P.find(x => x.id === id), e = EDIT[id];
+    const pn = card.querySelector(".pn"); if (!pn) return;
+    pn.oninput = () => e.name = pn.value;
+    card.querySelectorAll(".pp").forEach(b => b.onchange = () => { e.products = [...card.querySelectorAll(".pp:checked")].map(x => x.value); });
+    armed(card.querySelector(".ap"), () => {
+      if (!e.name.trim()) return toast("צריך שם לקוח");
+      if (!e.products.length) return toast("לא נבחר מוצר");
+      send({ a: "approve", rid: id, name: e.name.trim(), products: e.products, code: r.code }, "✅ נשלח לאיימק – הרישיון ייחתם ויגיע ללקוח");
+    });
+    armed(card.querySelector(".rj"), () => send({ a: "reject", rid: id, code: r.code, msg: "" }, "הבקשה נדחתה"));
+  });
+  // customers (from the iMac's last snapshot)
+  const S = ST.snap, q = $("#q").value.trim().toLowerCase().replace(/[\s-]/g, "");
+  $("#snapT").textContent = S ? `רשימת הלקוחות עודכנה מהאיימק ${ago(S.t)}` : "רשימת הלקוחות תופיע אחרי שהאיימק יתחבר";
+  const L = (S?.customers || []).filter(c => !q || (c.name + c.code + (c.phone || "") + (c.email || "")).toLowerCase().replace(/[\s-]/g, "").includes(q));
+  $("#cH").textContent = `לקוחות${S ? " · " + (S.customers || []).length : ""}`;
+  $("#cust").innerHTML = L.length ? L.map((c, i) => {
+    const chips = (c.items || []).map(it => {
+      const pc = cmdFor(x => (x.a === "revoke" || x.a === "restore") && x.body?.code === c.code && x.body?.product === it.p && x.st === "new");
+      if (pc) return `<span class="pc wait">⏳ ${PN[it.p] || it.p} · ${pc.a === "revoke" ? "משבית…" : "מחזיר…"}</span>`;
+      return it.rev ? `<span class="pc rv">⛔ ${PN[it.p] || it.p} · מושבת <button class="sm ghost rs" data-i="${i}" data-p="${it.p}">↩ החזר</button></span>`
+        : `<span class="pc ok">✓ ${PN[it.p] || it.p} · שולם <button class="sm ghost rv" data-i="${i}" data-p="${it.p}">⛔ השבת</button></span>`;
+    }).join("");
+    const last = cmdFor(x => (x.a === "revoke" || x.a === "restore") && x.body?.code === c.code && x.st !== "new" && Date.now() - x.t < 600000);
+    const open = OPEN.has(c.code);
+    return `<div class="card">
+      <div class="row"><span class="nm" style="flex:1">${esc(c.name || "—")}</span><button class="sm det-b" data-c="${esc(c.code)}">${open ? "▲ סגור" : "👤 פרטים"}</button></div>
+      <div class="code">${esc(c.code)}</div>
+      <div class="chips">${chips}</div>${last ? stLine(last) : ""}
+      ${open ? `<div class="det">${contact(c.phone, c.email) || `<div class="mut">אין טלפון או מייל שמורים</div>`}
+        <div class="mut" style="margin:10px 0 4px">רכישות</div>
+        ${(c.buys || []).map(b => `<div class="buy"><span class="mut">${esc(b.date)}</span><span style="flex:1">${(b.prods || []).map(p => PN[p] || p).join(" + ")}</span><b>${esc(b.amount)} ₪</b><span class="mut">${esc(PAYN[b.method] || "לא צוין")}</span></div>`).join("") || `<div class="mut">אין רכישות רשומות</div>`}
+        ${c.notes ? `<div class="mut" style="margin-top:8px">הערות: ${esc(c.notes)}</div>` : ""}</div>` : ""}
+    </div>`;
+  }).join("") : `<div class="empty">${S ? "לא נמצא" : ""}</div>`;
+  const T = (S?.trials || []);
+  $("#tH").hidden = !T.length; $("#tH").textContent = `🕒 בתקופת ניסיון · ${T.length}`;
+  $("#trial").innerHTML = T.map(t => `<div class="card"><div class="row"><span class="nm" style="flex:1">${esc(t.name || (t.app === "booth-solo" ? "פוטובוט עצמאי" : "MAGNEX"))}</span><span class="pc ${t.st === "trial" ? "wait" : "rv"}">${t.st === "trial" ? `🕒 נותרו ${t.days} ימים` : "הניסיון נגמר"}</span></div>
+    <div class="code">${esc(t.code)}</div><div class="mut">${t.app === "booth-solo" ? "פוטובוט עצמאי" : "MAGNEX"} ${esc(t.ver)} · הותקן ${new Date(t.first).toLocaleDateString("he-IL")} · נראה ${ago(t.last)}</div>${contact(t.phone, t.email)}</div>`).join("");
+  $("#cust").querySelectorAll(".det-b").forEach(b => b.onclick = () => { const k = b.dataset.c; OPEN.has(k) ? OPEN.delete(k) : OPEN.add(k); render(); });
+  $("#cust").querySelectorAll("button.rv,button.rs").forEach(b => {
+    const c = L[+b.dataset.i], p = b.dataset.p, on = b.classList.contains("rv");
+    armed(b, () => send({ a: on ? "revoke" : "restore", code: c.code, product: p, name: c.name, reason: "מהטלפון" }, on ? "⛔ נשלח לאיימק – הרישיון יושבת" : "↩ נשלח לאיימק – הרישיון יוחזר"));
+  });
+}
+async function load() {
+  if (!PAIRED) { try { if (!await pair()) return; } catch (e) { $("#pairTx").textContent = "אין חיבור לאינטרנט"; return; } }
+  $("#rf").innerHTML = '<span class="spin">🔄</span>';
+  try {
+    const r = await run("state");
+    if (!r.ok && (r.error === "unpaired" || r.error === "denied")) { PAIRED = false; return load(); }
+    if (!r.ok) { $("#hb").textContent = r.error === "forbidden" ? "🔒 הקישור לא בתוקף – צור קישור חדש באיימק" : (r.error || "שגיאה"); return; }
+    ST = r; LOCAL = LOCAL.filter(l => !(r.cmds || []).some(c => c.id === l.id));
+    const a = document.activeElement; if (!(a && (a.tagName === "INPUT") && a.type !== "checkbox")) render();
+  } catch (e) { $("#hb").textContent = "אין חיבור לאינטרנט"; $("#dot").className = "dot off"; }
+  finally { $("#rf").textContent = "🔄"; }
+}
+$("#rf").onclick = load;
+$("#q").oninput = render;
+document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+load(); setInterval(() => { if (PAIRED && !document.hidden) load(); }, 12000);
+setInterval(() => { if (!PAIRED && !document.hidden) load(); }, 4000);
+</script>
+</body>
+</html>
