@@ -25,6 +25,7 @@ h1{margin:0;font-size:clamp(24px,7vw,34px);font-weight:900;line-height:1.15}
 .card{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:14px}
 #prev{display:block;width:100%;height:auto;border-radius:6px;background:#fff;touch-action:none;box-shadow:0 16px 40px rgba(0,0,0,.5)}
 .hint{color:var(--muted);font-size:14px;margin:0}
+.pnum{margin:0;align-self:center;font-weight:700;font-size:14px;padding:4px 14px;border-radius:99px;background:rgba(255,255,255,.12)}
 .fbox{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 .fchip{font-family:inherit;font-weight:800;font-size:15px;padding:10px 14px;border-radius:999px;border:1.5px solid var(--line);background:#0f0c17;color:#fff}
 .fchip.on{border-color:var(--p2);background:#2a1a22}
@@ -32,7 +33,7 @@ h1{margin:0;font-size:clamp(24px,7vw,34px);font-weight:900;line-height:1.15}
 .slrow input{flex:1;accent-color:#ff8a3d;height:28px}
 .spinner{width:70px;height:70px;border-radius:50%;border:7px solid rgba(255,255,255,.15);border-top-color:#ff3d6e;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-#doneImg{width:62%;border-radius:6px;box-shadow:0 14px 34px rgba(0,0,0,.5);transform:rotate(-3deg)}
+#doneImg{width:90%;border-radius:6px;box-shadow:0 14px 34px rgba(0,0,0,.5);transform:rotate(-2deg)}
 footer{color:var(--muted);font-size:12.5px}
 [hidden]{display:none!important}
 </style></head><body>
@@ -41,17 +42,19 @@ footer{color:var(--muted);font-size:12.5px}
   <section data-step="loading" aria-live="polite" style="display:flex;justify-content:center;padding:40px 0"><div class="spinner" role="img" aria-label="טוען"></div></section>
   <section data-step="start" hidden style="width:100%;display:flex;flex-direction:column;gap:14px">
     <div class="big" aria-hidden="true">📸</div>
-    <p class="sub">מצלמים תמונה אחת — והיא מודפסת כפולרויד בעמדה, עם המסגרת של האירוע.</p>
+    <p class="pnum" id="numS">תמונה 1 מתוך 2</p>
+    <p class="sub" id="startTx">מצלמים 2 תמונות שונות — ומקבלים 2 פולרואידים בעמדה, עם המסגרת של האירוע.</p>
     <button class="btn btn-primary" id="shoot" type="button">📸 צלמו סלפי</button>
     <button class="btn btn-ghost" id="shootBack" type="button">📷 צילום במצלמה האחורית</button>
   </section>
   <section data-step="edit" hidden class="card" aria-label="עריכת התמונה">
+    <p class="pnum" id="numE">תמונה 1 מתוך 2</p>
     <canvas id="prev" role="img" aria-label="תצוגה מקדימה של הפולרויד"></canvas>
     <p class="hint">גררו את התמונה כדי למקם אותה במסגרת</p>
     <label class="slrow"><span>זום</span><input type="range" id="zoom" min="1" max="2.5" step="0.05" value="1" dir="ltr"></label>
     <div class="fbox" id="decos" role="group" aria-label="קישוט" hidden></div>
     <div class="fbox" id="filters" role="group" aria-label="פילטר"></div>
-    <button class="btn btn-primary" id="send" type="button">🖨 שלחו להדפסה</button>
+    <button class="btn btn-primary" id="send" type="button">✓ תמונה 1 מוכנה — לתמונה 2 ➜</button>
     <button class="btn btn-ghost" id="retake" type="button">↺ צלמו שוב</button>
   </section>
   <section data-step="sending" hidden aria-live="polite" style="display:flex;flex-direction:column;align-items:center;gap:18px">
@@ -60,7 +63,7 @@ footer{color:var(--muted);font-size:12.5px}
   <section data-step="done" hidden aria-live="polite" style="display:flex;flex-direction:column;align-items:center;gap:16px">
     <img id="doneImg" alt="הפולרויד שלכם">
     <h1>נשלח להדפסה! 🎉</h1>
-    <p class="sub">הפולרויד יוצא בעמדה בעוד כמה שניות.<br>רוצים עוד אחד? סרקו שוב את הקוד בעמדה.</p>
+    <p class="sub">2 הפולרואידים יוצאים בעמדה בעוד כמה שניות.<br>רוצים עוד אחד? סרקו שוב את הקוד בעמדה.</p>
   </section>
   <section data-step="msg" hidden aria-live="assertive" style="display:flex;flex-direction:column;align-items:center;gap:12px">
     <div class="big" id="msgI" aria-hidden="true">⚠️</div><h1 id="msgT"></h1><p class="sub" id="msgX"></p>
@@ -76,7 +79,7 @@ footer{color:var(--muted);font-size:12.5px}
    2. from the neutral address  https://<host>/#<script id>  (works even for kids' supervised Google accounts):
       it asks the customer's script for the design + a one-time token, WITHOUT any Google sign-in (credentials omitted). */
 var $ = function (s) { return document.querySelector(s); };
-var S = { deco: "none", img: null, zoom: 1, ox: 0, oy: 0, filter: "none", frame: null, busy: false, done: false };
+var S = { shots: [], deco: "none", img: null, zoom: 1, ox: 0, oy: 0, filter: "none", frame: null, busy: false, done: false };
 var CFG = null, TOKEN = "__TOKEN__", RELAY = null;
 function step(n) { document.querySelectorAll("[data-step]").forEach(function (e) { e.hidden = e.getAttribute("data-step") !== n; }); window.scrollTo(0, 0); }
 function msg(t, x, i) { $("#msgT").textContent = t; $("#msgX").textContent = x || ""; $("#msgI").textContent = i || "⚠️"; step("msg"); }
@@ -240,21 +243,42 @@ cv.addEventListener("pointermove", function (e) {
   S.oy = Math.max(-1, Math.min(1, drag.oy - (e.clientY - drag.y) * k * S.zoom)); draw();
 });
 ["pointerup", "pointercancel"].forEach(function (ev) { cv.addEventListener(ev, function () { drag = null; }); });
+/* the guest takes 2 photos; they travel side by side in ONE picture (filters baked in) and the iPad splits them */
+function labels() {
+  var n = S.shots.length + 1;
+  $("#numS").textContent = $("#numE").textContent = "תמונה " + n + " מתוך 2";
+  $("#startTx").textContent = n === 1 ? "מצלמים 2 תמונות שונות — ומקבלים 2 פולרואידים בעמדה, עם המסגרת של האירוע." : "יופי! 🎉 עכשיו צלמו את התמונה השנייה — פוזה אחרת, פרצוף מצחיק, מה שבא לכם.";
+  $("#send").textContent = n === 1 ? "✓ תמונה 1 מוכנה — לתמונה 2 ➜" : "🖨 שלחו להדפסה";
+}
+function copy(v) { var c = document.createElement("canvas"); c.width = v.width; c.height = v.height; c.getContext("2d").drawImage(v, 0, 0); return c; }
+function both() {      /* the two polaroids side by side, for the "sent" screen */
+  var a = S.prev1, b = $("#prev"); if (!a) return b;
+  var c = document.createElement("canvas"), g = Math.round(b.width * 0.06); c.width = b.width * 2 + g; c.height = b.height;
+  c.getContext("2d").drawImage(a, 0, 0, b.width, b.height); c.getContext("2d").drawImage(b, b.width + g, 0); return c;
+}
+function pair() {
+  var a = S.shots[0], b = fx(photo(1280), S.filter), h = Math.min(a.height, b.height);
+  var wa = Math.round(a.width * h / a.height), wb = Math.round(b.width * h / b.height), w = Math.min(wa, wb);
+  var c = document.createElement("canvas"); c.width = w * 2; c.height = h;
+  var x = c.getContext("2d"); x.drawImage(a, 0, 0, w, h); x.drawImage(b, w, 0, w, h);
+  return c;
+}
 $("#send").onclick = function () {
   if (S.busy || S.done || !S.img) return;
+  if (!S.shots.length) { S.prev1 = copy($("#prev")); S.shots = [fx(photo(1280), S.filter)]; S.img = null; labels(); step("start"); return; }
   S.busy = true; step("sending");
-  var data = photo(1280).toDataURL("image/jpeg", 0.88);
+  var data = pair().toDataURL("image/jpeg", 0.88);
   var ok = function (r) {
     S.busy = false;
-    if (r && r.ok) { S.done = true; $("#doneImg").src = $("#prev").toDataURL("image/jpeg", 0.8); step("done"); }
+    if (r && r.ok) { S.done = true; $("#doneImg").src = both().toDataURL("image/png"); step("done"); }
     else if (r && r.used) msg("הקוד הזה כבר נוצל", "כל סריקה = הדפסה אחת. לעוד הדפסה — סרקו שוב את הקוד בעמדה.", "🔁");
     else msg("ההדפסה לא נשלחה", (r && r.error) || "נסו שוב בעוד רגע.");
   };
   var fail = function () { S.busy = false; msg("אין חיבור", "בדקו שיש אינטרנט בטלפון ונסו שוב.", "📶"); };
   if (RELAY) {      // neutral page: plain request, no Google sign-in involved (text/plain = no CORS preflight)
     fetch(RELAY + "?a=upload", { method: "POST", credentials: "omit", headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ token: TOKEN, data: data, filter: S.filter }) }).then(function (r) { return r.json(); }).then(ok).catch(fail);
-  } else google.script.run.withSuccessHandler(ok).withFailureHandler(fail).upload(TOKEN, data, S.filter);
+      body: JSON.stringify({ token: TOKEN, data: data, filter: "none" }) }).then(function (r) { return r.json(); }).then(ok).catch(fail);
+  } else google.script.run.withSuccessHandler(ok).withFailureHandler(fail).upload(TOKEN, data, "none");
 };
 step("start");
 }
