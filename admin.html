@@ -85,7 +85,7 @@ label.ck input{width:18px;height:18px}
 const HP = new URLSearchParams(location.hash.slice(1));
 const K = HP.get("k") || "";
 const RELAY = "https://script.google.com/macros/s/" + (HP.get("s") || "AKfycbyujhq_7QMAJE6q6yaFFaqi95uG-7qKKTlUnmiRM5PSg8-4-Wktc21x67JOp7MvNMii") + "/exec";
-const PN = { magnex: "MAGNEX", booth: "פוטובוט (תוסף)", "booth-solo": "פוטובוט עצמאי", owner: "הכול (בעלים)", "?": "רישיון" };
+const PN = { magnex: "MAGNEX", booth: "פוטובוט (תוסף)", "booth-solo": "פוטובוט עצמאי", darkroom: "חדר חושך (תוסף)", owner: "הכול (בעלים)", "?": "רישיון" };
 const PAYN = { bit: "ביט", paybox: "פייבוקס", other: "אחר" };
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -164,7 +164,7 @@ function render() {
       ${contact(r.phone, r.email)}
       ${c && c.st !== "error" ? stLine(c) : `
       <div style="margin-top:10px"><input type="text" class="pn" value="${esc(e.name)}" placeholder="שם הלקוח (יופיע ברישיון)"></div>
-      <div class="chips">${["magnex", "booth", "booth-solo"].map(p => `<label class="ck"><input type="checkbox" class="pp" value="${p}" ${e.products.includes(p) ? "checked" : ""}>${PN[p]}</label>`).join("")}</div>
+      <div class="chips">${["magnex", "booth", "booth-solo", "darkroom"].map(p => `<label class="ck"><input type="checkbox" class="pp" value="${p}" ${e.products.includes(p) ? "checked" : ""}>${PN[p]}</label>`).join("")}</div>
       <div class="acts"><button class="pri ap">✅ התשלום התקבל – הפעל</button><button class="rj">✖ דחה</button></div>${c ? stLine(c) : ""}`}
     </div>`;
   }).join("") : `<div class="empty">אין בקשות ממתינות 🎉</div>`;
