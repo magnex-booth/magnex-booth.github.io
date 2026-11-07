@@ -128,7 +128,7 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
   const show = id => ["loading", "start", "cam", "review", "sending", "done", "msg"].forEach(s => $(s).hidden = s !== id);
   const msg = (t, x, i) => { $("msgT").textContent = t; $("msgX").textContent = x || ""; $("msgI").textContent = i || "⚠️"; show("msg"); };
   const diag = []; const D = t => { diag.push(t); $("diag").textContent = diag.join("\n"); };
-  const PAGE_V = "1"; D("Booth strip page " + PAGE_V);
+  const PAGE_V = "2"; D("Booth strip page " + PAGE_V);
   // the 4 phone designs – the same as MAGNEX Pocket (the iPad picks one: settings → 📱 phone)
   const TH = {
     booth: { dark: true, bg: "#0b0912", fg: "#fff", muted: "#c3bcd2", line: "rgba(255,255,255,.16)", acc: "#ff4fd8", pri: "linear-gradient(135deg,#ff4fd8,#ff8a3d 60%,#ffd23d)", priFg: "#1a0d14", secBg: "rgba(255,255,255,.08)", secFg: "#fff", rad: "999px", camBg: "#0b0912", camFg: "#fff", camBtn: "rgba(255,255,255,.14)" },
@@ -144,6 +144,8 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
     const m = /^([\w.-]+)\/([\w-]{20,})$/.exec(h); return m ? "https://script.google.com/a/macros/" + m[1] + "/s/" + m[2] + "/exec" : null; };
   const raw = ($("mbcfg").textContent || "").trim();
   if (raw.indexOf("__CF" + "G__") < 0) { try { CFG = JSON.parse(raw); } catch (e) { } }
+  const Q = new URLSearchParams(location.search), DEMO = Q.get("demo") === "1";   // ?demo=1&n=3&t=pop – a look at the page, nothing is printed
+  if (DEMO) { const n = Q.get("n") === "3" ? 3 : 4; CFG = { title: Q.get("title") || "החתונה של שירה ועומר", ev2: "12.11.2026", n, phTheme: Q.get("t") || "booth", saspect: n === 3 ? 1.18 : 1.46, filtersOn: true }; }
   if (CFG) boot(); else {
     RELAY = relayFromHash();
     if (!RELAY) msg("הקוד לא שלם", "סרקו שוב את הקוד שעל מסך העמדה.");
@@ -170,8 +172,10 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
     function stripCanvas(shots, maxH, demo) {   // the strip as the guest will get it (a preview – the real print is made on the iPad)
       const W0 = FR ? FR.naturalWidth : 500, H0 = FR ? FR.naturalHeight : 1500, k = maxH / H0;   // drawn at the size it is shown (the design is small, the photos are not)
       const c = document.createElement("canvas"); c.width = Math.round(W0 * k); c.height = Math.round(H0 * k); const x = c.getContext("2d");
-      if (FR) x.drawImage(FR, 0, 0, c.width, c.height); else { x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); }
-      const wins = WINS || Array.from({ length: N }, (_, i) => ({ x: .07, y: .023 + i * (.78 / N), w: .86, h: .78 / N - .015 }));
+      if (FR) x.drawImage(FR, 0, 0, c.width, c.height); else { x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height);
+        x.fillStyle = "#2a2230"; x.textAlign = "center"; x.font = `900 ${Math.round(c.width * .09)}px Heebo, Arial, sans-serif`; x.fillText(title, c.width / 2, c.height * .87, c.width * .9);
+        x.fillStyle = "#8a7d88"; x.font = `600 ${Math.round(c.width * .05)}px Heebo, Arial, sans-serif`; x.fillText(CFG.ev2 || "", c.width / 2, c.height * .92); }
+      const wins = WINS || Array.from({ length: N }, (_, i) => ({ x: .07, y: .023 + i * (.8 / N), w: .86, h: .8 / N - .012 }));
       wins.forEach((w, i) => { const r = { x: w.x * c.width, y: w.y * c.height, w: w.w * c.width, h: w.h * c.height };
         if (shots[i]) drawCover(x, shots[i], r); else if (demo) sample(x, r, i); });
       return c;
@@ -316,7 +320,7 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
     }
     $("stripC").onclick = e => {   // tap a photo in the strip = retake only that one
       const r = $("stripC").getBoundingClientRect(), fx0 = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
-      const wins = WINS || Array.from({ length: N }, (_, i) => ({ x: .07, y: .023 + i * (.78 / N), w: .86, h: .78 / N - .015 }));
+      const wins = WINS || Array.from({ length: N }, (_, i) => ({ x: .07, y: .023 + i * (.8 / N), w: .86, h: .8 / N - .012 }));
       const i = wins.findIndex(w => fx0 >= w.x && fx0 <= w.x + w.w && fy >= w.y && fy <= w.y + w.h); if (i >= 0) startCam(i, true);
     };
     addEventListener("resize", () => { if (!$("review").hidden) drawReview(); });
@@ -334,7 +338,8 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
         else msg("ההדפסה לא נשלחה", (r && r.error) || "נסו שוב בעוד רגע.");
       };
       const fail = () => { $("send").disabled = false; msg("אין חיבור", "בדקו שיש אינטרנט בטלפון ונסו שוב.", "📶"); };
-      if (RELAY) fetch(RELAY + "?a=upload", { method: "POST", credentials: "omit", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ token: TOKEN, data, filter }) }).then(r => r.json()).then(ok).catch(fail);
+      if (DEMO) setTimeout(() => ok({ ok: true }), 900);
+      else if (RELAY) fetch(RELAY + "?a=upload", { method: "POST", credentials: "omit", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ token: TOKEN, data, filter }) }).then(r => r.json()).then(ok).catch(fail);
       else if (window.google && google.script) google.script.run.withSuccessHandler(ok).withFailureHandler(fail).upload(TOKEN, data, filter);
       else fail();
     };
