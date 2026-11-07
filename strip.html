@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0912">
+<meta name="robots" content="noindex">
+<title>MAGNEX Booth · סטריפ מהטלפון</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;800;900&display=swap">
+<style>
+/* MAGNEX Booth — the guest's phone: a 3/4-photo strip shot inside the page (same look as MAGNEX Pocket).
+   The design comes from the iPad through the customer's own Google script; one scan = one strip. */
+:root{--bg:#0b0912;--fg:#fff;--muted:#c3bcd2;--line:rgba(255,255,255,.16);--acc:#ff4fd8;--pri:linear-gradient(135deg,#ff4fd8,#ff8a3d 60%,#ffd23d);--priFg:#1a0d14;--secBg:rgba(255,255,255,.08);--secFg:#fff;--rad:999px;--camBg:#0b0912;--camFg:#fff;--camBtn:rgba(255,255,255,.14)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:Heebo,-apple-system,system-ui,"Segoe UI",Arial,sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none}
+button{font:inherit;cursor:pointer}
+[hidden]{display:none!important}
+.scr{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center}
+.page{overflow:auto;padding:max(22px,env(safe-area-inset-top)) 20px max(24px,env(safe-area-inset-bottom));gap:14px;text-align:center}
+.brand{display:flex;flex-direction:column;align-items:center;line-height:1}
+.wm{font-weight:900;font-size:30px;letter-spacing:1px;direction:ltr}.wm .g{color:#3d7bff}.wm .x{color:#6cc94a}
+.bt{font-weight:900;font-size:17px;color:var(--acc);margin-top:2px}
+.brand.sm .wm{font-size:21px}.brand.sm .bt{font-size:13px}
+h1{margin:0;font-size:30px;font-weight:900;line-height:1.12}
+.ev2{margin:0;font-size:15px;opacity:.75}
+.sub{color:var(--muted);font-size:16px;line-height:1.5;margin:0;max-width:440px}
+.pill{font-size:13px;font-weight:700;padding:5px 14px;border-radius:99px;background:var(--secBg);border:1px solid var(--line)}
+.btn{font-weight:800;border:0;border-radius:var(--rad);padding:17px 24px;font-size:20px;width:100%;max-width:440px}
+.btn:disabled{opacity:.55}
+.pri{background:var(--pri);color:var(--priFg)}
+.sec{background:var(--secBg);color:var(--secFg);border:1.5px solid var(--line);font-size:17px;padding:14px}
+.hero{height:min(46vh,380px);width:auto;max-width:60vw;box-shadow:0 18px 40px rgba(0,0,0,.45);transform:rotate(-3deg);margin:4px 0;background:#fff}
+/* camera */
+#cam{background:var(--camBg)}
+#view{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.ctop{position:absolute;top:0;left:0;right:0;padding:max(10px,env(safe-area-inset-top)) 14px 0;display:flex;align-items:center;justify-content:space-between;z-index:2}
+.rbtn{width:46px;height:46px;border-radius:50%;border:0;background:var(--camBtn);color:var(--camFg);display:flex;align-items:center;justify-content:center;flex:none}
+#flashB.on{background:#ffd23d;color:#111}#flashB.off{opacity:.55}
+.cbot{position:absolute;bottom:0;left:0;right:0;padding:0 18px max(16px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px;z-index:2}
+.zooms{align-self:center;display:flex;gap:6px;background:rgba(0,0,0,.35);border-radius:99px;padding:4px;direction:ltr}
+.zooms button{min-width:40px;height:34px;border-radius:99px;border:0;background:none;color:#fff;font-weight:800;font-size:13px;padding:0 8px}
+.zooms button.on{background:rgba(255,255,255,.92);color:#111}
+.crow{display:flex;align-items:center;gap:14px;direction:ltr}   /* the progress card on the left, the shutter on the right (a right-hand selfie) */
+.prog{flex:1;height:92px;border-radius:26px;border:2px solid var(--acc);background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 22%,transparent),rgba(255,138,61,.1));display:flex;align-items:center;justify-content:center;gap:8px;padding:0 10px;direction:ltr;color:var(--camFg)}
+.prog .th{width:48px;height:36px;border:2px dashed color-mix(in srgb,var(--camFg) 35%,transparent);border-radius:4px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;opacity:.75;background:center/cover no-repeat}
+.prog .th.done{border:2px solid #fff;opacity:1;color:transparent}
+.prog .th.cur{border-color:var(--acc);border-style:dashed;border-width:3px;opacity:1}
+.shutter{width:92px;height:92px;border-radius:50%;border:6px solid var(--camFg);background:transparent;padding:6px;flex:none}
+.shutter span{display:block;width:100%;height:100%;border-radius:50%;background:var(--acc);transition:transform .1s}
+.shutter:active span{transform:scale(.9)}
+#stepPill{position:absolute;left:50%;transform:translateX(-50%);z-index:2;background:rgba(0,0,0,.5);color:#fff;font-weight:800;font-size:15px;padding:7px 16px;border-radius:99px;white-space:nowrap}
+#zoomLbl{position:absolute;left:50%;transform:translateX(-50%);top:40%;z-index:3;background:rgba(0,0,0,.55);color:#fff;font-weight:900;font-size:22px;padding:8px 16px;border-radius:99px;pointer-events:none;opacity:0;transition:opacity .3s}
+#flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:4;transition:opacity .35s}
+/* review */
+#review{padding:max(10px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom));gap:10px}
+.rvTop{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:560px;direction:ltr}
+.rvT{margin:0;font-size:26px;font-weight:900;direction:rtl}
+.rvMid{flex:1;min-height:0;width:100%;max-width:560px;display:flex;gap:14px;align-items:center;justify-content:center}
+#stripC{height:100%;max-height:100%;width:auto;box-shadow:0 16px 40px rgba(0,0,0,.45);background:#fff}
+.again{display:flex;flex-direction:column;gap:10px}
+.chip{font-weight:800;font-size:14px;padding:9px 13px;border-radius:99px;border:1.5px solid var(--line);background:var(--secBg);color:var(--secFg)}
+.chip.on{border-color:var(--acc)}
+.chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.rvBtns{display:flex;gap:10px;width:100%;max-width:560px}
+.rvBtns .btn{flex:1;padding:12px 8px;font-size:17px}.rvBtns .sec{flex:.8}
+.spinner{width:64px;height:64px;border-radius:50%;border:7px solid color-mix(in srgb,var(--fg) 15%,transparent);border-top-color:var(--acc);animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+details.diag{font-size:11.5px;color:var(--muted);max-width:440px;width:100%;margin-top:auto}
+details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:break-word;margin:6px 0 0}
+</style>
+</head>
+<body>
+<section class="scr page" id="loading"><div style="flex:1"></div><div class="spinner" role="img" aria-label="טוען"></div><div style="flex:1"></div></section>
+
+<section class="scr page" id="start" hidden>
+  <div class="brand"><div class="wm">MA<span class="g">G</span>NE<span class="x">X</span></div><div class="bt">Booth</div></div>
+  <div class="pill" id="nPill">🎞 סטריפ מהטלפון שלכם</div>
+  <div><h1 id="evName">MAGNEX Booth</h1><p class="ev2" id="evSub" hidden></p></div>
+  <img class="hero" id="hero" alt="" hidden>
+  <button class="btn pri" id="go" type="button">📸 מתחילים לצלם</button>
+  <p class="sub" style="font-size:14px" id="howTo">מצלמים תמונה אחרי תמונה, מאשרים –<br>והסטריפ יוצא בעמדה.</p>
+  <details class="diag"><summary>פרטים טכניים</summary><pre id="diag"></pre></details>
+</section>
+
+<section class="scr" id="cam" hidden>
+  <canvas id="view"></canvas>
+  <div class="ctop">
+    <div style="display:flex;gap:8px"><button class="rbtn" id="close" type="button" aria-label="סגירה"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <button class="rbtn on" id="flashB" type="button" aria-label="פלאש" aria-pressed="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></button></div>
+    <div class="brand sm"><div class="wm" style="color:var(--camFg)">MA<span class="g">G</span>NE<span class="x">X</span></div><div class="bt">Booth</div></div>
+    <button class="rbtn" id="flip" type="button" aria-label="החלפת מצלמה"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9a8 8 0 0 1 14-3l2 2"/><path d="M20 4v4h-4"/><path d="M20 15a8 8 0 0 1-14 3l-2-2"/><path d="M4 20v-4h4"/></svg></button>
+  </div>
+  <div id="stepPill">תמונה 1 מתוך 4</div>
+  <div class="cbot">
+    <div class="zooms" id="zooms" role="group" aria-label="זום"></div>
+    <div class="crow"><div class="prog" id="prog" aria-hidden="true"></div><button class="shutter" id="snap" type="button" aria-label="צילום"><span></span></button></div>
+  </div>
+  <div id="zoomLbl">1×</div>
+  <div id="flash"></div>
+</section>
+
+<section class="scr" id="review" hidden>
+  <div class="rvTop"><div class="brand sm"><div class="wm">MA<span class="g">G</span>NE<span class="x">X</span></div><div class="bt">Booth</div></div><h1 class="rvT">אהבתם?</h1></div>
+  <div class="rvMid"><canvas id="stripC"></canvas><div class="again" id="again"></div></div>
+  <p class="sub" style="font-size:13px">לא אהבתם תמונה אחת? לוחצים עליה – ומצלמים רק אותה</p>
+  <div class="chips" id="filters" hidden></div>
+  <div class="rvBtns"><button class="btn sec" id="redo" type="button">↺ הכול מחדש</button><button class="btn pri" id="send" type="button">🖨 הדפיסו</button></div>
+</section>
+
+<section class="scr page" id="sending" hidden><div style="flex:1"></div><div class="spinner"></div><p class="sub">שולחים להדפסה…</p><div style="flex:1"></div></section>
+
+<section class="scr page" id="done" hidden>
+  <div class="brand sm"><div class="wm">MA<span class="g">G</span>NE<span class="x">X</span></div><div class="bt">Booth</div></div>
+  <h1 style="margin-top:14px" id="doneT">הסטריפ בדרך! 🎉</h1>
+  <p class="sub" id="doneX">גשו לעמדת הפוטובוט – הוא יוצא שם בעוד כמה שניות.</p>
+  <img id="doneImg" alt="" style="height:min(44vh,360px);width:auto;box-shadow:0 16px 36px rgba(0,0,0,.45);transform:rotate(-4deg);margin:8px 0;background:#fff">
+  <p class="sub" style="font-size:14px">רוצים עוד אחד? סרקו שוב את הקוד בעמדה.</p>
+</section>
+
+<section class="scr page" id="msg" hidden><div style="flex:1"></div><div style="font-size:64px" id="msgI">⚠️</div><h1 id="msgT"></h1><p class="sub" id="msgX"></p><div style="flex:1"></div></section>
+
+<input type="file" id="file" accept="image/*" capture="user" hidden>
+<script id="mbcfg" type="application/json">__CFG__</script>
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const show = id => ["loading", "start", "cam", "review", "sending", "done", "msg"].forEach(s => $(s).hidden = s !== id);
+  const msg = (t, x, i) => { $("msgT").textContent = t; $("msgX").textContent = x || ""; $("msgI").textContent = i || "⚠️"; show("msg"); };
+  const diag = []; const D = t => { diag.push(t); $("diag").textContent = diag.join("\n"); };
+  const PAGE_V = "1"; D("Booth strip page " + PAGE_V);
+  // the 4 phone designs – the same as MAGNEX Pocket (the iPad picks one: settings → 📱 phone)
+  const TH = {
+    booth: { dark: true, bg: "#0b0912", fg: "#fff", muted: "#c3bcd2", line: "rgba(255,255,255,.16)", acc: "#ff4fd8", pri: "linear-gradient(135deg,#ff4fd8,#ff8a3d 60%,#ffd23d)", priFg: "#1a0d14", secBg: "rgba(255,255,255,.08)", secFg: "#fff", rad: "999px", camBg: "#0b0912", camFg: "#fff", camBtn: "rgba(255,255,255,.14)" },
+    fridge: { dark: false, bg: "#fff7ef", fg: "#2b1d27", muted: "#6b5562", line: "#ead9cc", acc: "#c2185b", pri: "#c2185b", priFg: "#fff", secBg: "#fff", secFg: "#2b1d27", rad: "30px", camBg: "#fff7ef", camFg: "#2b1d27", camBtn: "rgba(43,29,39,.08)" },
+    pop: { dark: false, bg: "#ffd23d", fg: "#111", muted: "#111", line: "#111", acc: "#ff3d6e", pri: "#ff3d6e", priFg: "#fff", secBg: "#fff", secFg: "#111", rad: "16px", camBg: "#ffd23d", camFg: "#111", camBtn: "rgba(0,0,0,.1)" },
+    ivory: { dark: false, bg: "#f6f1e7", fg: "#2a2219", muted: "#6b5e4c", line: "#d8cbb4", acc: "#a8894f", pri: "#2a2219", priFg: "#f6f1e7", secBg: "transparent", secFg: "#2a2219", rad: "999px", camBg: "#f6f1e7", camFg: "#2a2219", camBtn: "rgba(42,34,25,.08)" }
+  };
+  // where: served by the customer's own Google script (design + token injected), or the neutral address #<script id>
+  let CFG = null, TOKEN = "__TOKEN__", RELAY = null;
+  const relayFromHash = () => { const h = decodeURIComponent((location.hash || "").replace(/^#/, "")).trim();
+    if (/^http:\/\/127\.0\.0\.1:\d+\/exec$/.test(h)) return h;                                  // local tests only
+    if (/^[\w-]{20,}$/.test(h)) return "https://script.google.com/macros/s/" + h + "/exec";
+    const m = /^([\w.-]+)\/([\w-]{20,})$/.exec(h); return m ? "https://script.google.com/a/macros/" + m[1] + "/s/" + m[2] + "/exec" : null; };
+  const raw = ($("mbcfg").textContent || "").trim();
+  if (raw.indexOf("__CF" + "G__") < 0) { try { CFG = JSON.parse(raw); } catch (e) { } }
+  if (CFG) boot(); else {
+    RELAY = relayFromHash();
+    if (!RELAY) msg("הקוד לא שלם", "סרקו שוב את הקוד שעל מסך העמדה.");
+    else fetch(RELAY + "?a=page", { credentials: "omit", cache: "no-store" }).then(r => r.json()).then(j => {
+      if (!j || !j.ok) return msg("הצילום מהטלפון כבוי כרגע", (j && j.msg) || "העמדה לא פעילה עכשיו. נסו שוב כשהיא דולקת 🙂", "📸");
+      CFG = j.cfg || {}; TOKEN = j.token; boot();
+    }).catch(() => msg("אין חיבור לעמדה", "בדקו שיש אינטרנט בטלפון וסרקו שוב.", "📶"));
+  }
+
+  function boot() {
+    const T = TH[CFG.phTheme] || TH.booth, st = document.documentElement.style;
+    for (const k of ["bg", "fg", "muted", "line", "acc", "pri", "priFg", "secBg", "secFg", "rad", "camBg", "camFg", "camBtn"]) st.setProperty("--" + k, T[k]);
+    document.querySelector('meta[name="theme-color"]').content = T.bg;
+    if (CFG.phTheme === "pop") ["go", "send"].forEach(id => { $(id).style.border = "3px solid #111"; $(id).style.boxShadow = "5px 5px 0 #111"; });
+    if (CFG.phTheme === "ivory") document.querySelectorAll("h1").forEach(h => { h.style.fontFamily = "'Frank Ruhl Libre',serif"; h.style.fontWeight = "400"; });
+    const N = CFG.n === 3 ? 3 : 4, A = +CFG.saspect > 0.3 ? +CFG.saspect : 1.4;   // photos in the strip · one photo window (w/h)
+    const title = CFG.title || CFG.event || "MAGNEX Booth";
+    $("evName").textContent = title; document.title = title + " · MAGNEX Booth";
+    if (CFG.title2 || CFG.ev2) { $("evSub").textContent = CFG.title2 || CFG.ev2; $("evSub").hidden = false; }
+    $("nPill").textContent = `🎞 סטריפ של ${N} תמונות מהטלפון שלכם`;
+    // the iPad's strip design (empty windows) – our photos go into its windows
+    let FR = null; const WINS = Array.isArray(CFG.swins) && CFG.swins.length >= N ? CFG.swins.slice(0, N) : null;
+    const sample = (x, r, i) => { const g = x.createLinearGradient(0, r.y, 0, r.y + r.h), cs = [["#9ccbec", "#f3d9bd"], ["#f7b6c8", "#ffe0b5"], ["#b9a6f2", "#f3d2e6"], ["#8fd3c7", "#f2e3b8"]][i % 4]; g.addColorStop(0, cs[0]); g.addColorStop(1, cs[1]); x.fillStyle = g; x.fillRect(r.x, r.y, r.w, r.h); };
+    function stripCanvas(shots, maxH, demo) {   // the strip as the guest will get it (a preview – the real print is made on the iPad)
+      const W0 = FR ? FR.naturalWidth : 500, H0 = FR ? FR.naturalHeight : 1500, k = maxH / H0;   // drawn at the size it is shown (the design is small, the photos are not)
+      const c = document.createElement("canvas"); c.width = Math.round(W0 * k); c.height = Math.round(H0 * k); const x = c.getContext("2d");
+      if (FR) x.drawImage(FR, 0, 0, c.width, c.height); else { x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); }
+      const wins = WINS || Array.from({ length: N }, (_, i) => ({ x: .07, y: .023 + i * (.78 / N), w: .86, h: .78 / N - .015 }));
+      wins.forEach((w, i) => { const r = { x: w.x * c.width, y: w.y * c.height, w: w.w * c.width, h: w.h * c.height };
+        if (shots[i]) drawCover(x, shots[i], r); else if (demo) sample(x, r, i); });
+      return c;
+    }
+    function drawCover(x, src, r) { const sw = src.width, sh = src.height, s = Math.max(r.w / sw, r.h / sh); x.save(); x.beginPath(); x.rect(r.x, r.y, r.w, r.h); x.clip(); x.drawImage(src, r.x + (r.w - sw * s) / 2, r.y + (r.h - sh * s) / 2, sw * s, sh * s); x.restore(); }
+    const hero = () => { $("hero").src = stripCanvas([], 760, true).toDataURL("image/jpeg", .85); $("hero").hidden = false; };
+    if (CFG.sprev) { const im = new Image(); im.onload = () => { FR = im; hero(); }; im.onerror = hero; im.src = CFG.sprev; } else hero();
+    D("strip: " + N + " · window " + A.toFixed(2) + " · design " + (CFG.sprev ? "yes" : "no") + " · theme " + (CFG.phTheme || "booth"));
+    show("start");
+
+    // ---------- camera ----------
+    let shots = [], cur = 0, retakeOne = -1, facing = "user", stream = null, track = null, video = null, raf = 0, busy = false;
+    let hw = null, zoom = 1, torch = false, flashOn = true, filter = "none";
+    const flashUI = () => { const b = $("flashB"); b.classList.toggle("on", flashOn); b.classList.toggle("off", !flashOn); b.setAttribute("aria-pressed", flashOn ? "true" : "false"); };
+    function camRect(W, H) {   // the photo window, as big as possible between the bars
+      const dpr = window.devicePixelRatio || 1, L = 10 * dpr, R = 10 * dpr, Tp = 120 * dpr, B = 250 * dpr;
+      const aw = W - L - R, ah = H - Tp - B; let w = aw, h = w / A; if (h > ah) { h = ah; w = h * A; }
+      return { x: L + (aw - w) / 2, y: Tp + (ah - h) / 2, w, h };
+    }
+    function loop() {
+      const c = $("view"), dpr = window.devicePixelRatio || 1, W = Math.round(innerWidth * dpr), H = Math.round(innerHeight * dpr);
+      if (c.width !== W || c.height !== H) { c.width = W; c.height = H; }
+      const x = c.getContext("2d"); x.fillStyle = T.camBg; x.fillRect(0, 0, W, H);
+      const r = camRect(W, H), pad = 8 * dpr;
+      x.save(); x.shadowColor = "rgba(0,0,0,.35)"; x.shadowBlur = 24 * dpr; x.fillStyle = "#fff"; x.fillRect(r.x - pad, r.y - pad, r.w + 2 * pad, r.h + 2 * pad); x.restore();
+      if (video && video.videoWidth) {
+        const vw = video.videoWidth, vh = video.videoHeight, z = hw ? 1 : zoom, s = Math.max(r.w / vw, r.h / vh) * z;
+        x.save(); x.beginPath(); x.rect(r.x, r.y, r.w, r.h); x.clip(); x.translate(r.x + r.w / 2, r.y + r.h / 2); if (facing === "user") x.scale(-1, 1);
+        x.drawImage(video, -vw * s / 2, -vh * s / 2, vw * s, vh * s); x.restore();
+      }
+      const p = $("stepPill"); p.style.top = ((r.y + r.h + pad) / dpr + 12) + "px";
+      raf = requestAnimationFrame(loop);
+    }
+    async function openCam() {
+      if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) throw new Error("no getUserMedia");
+      if (stream) stream.getTracks().forEach(t => t.stop());
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing, width: { ideal: 2560 }, height: { ideal: 1920 } }, audio: false });
+      track = stream.getVideoTracks()[0];
+      if (!video) { video = document.createElement("video"); video.playsInline = true; video.muted = true; video.setAttribute("playsinline", ""); }
+      video.srcObject = stream; await video.play();
+      hw = null; torch = false; try { const cp = track.getCapabilities ? track.getCapabilities() : {}; if (cp.zoom && cp.zoom.max > cp.zoom.min) hw = { min: cp.zoom.min, max: cp.zoom.max }; torch = !!cp.torch; } catch (_) { }
+      zoom = 1; zoomUI(); if (hw) setZoom(Math.max(hw.min, Math.min(hw.max, 1)));
+      D("camera: " + facing + " " + video.videoWidth + "×" + video.videoHeight + " · zoom " + (hw ? hw.min + "–" + hw.max : "digital") + " · torch " + (torch ? "yes" : "no"));
+    }
+    function stopCam() { cancelAnimationFrame(raf); if (stream) stream.getTracks().forEach(t => t.stop()); stream = null; track = null; }
+    const zMin = () => hw ? Math.max(.5, hw.min) : 1, zMax = () => hw ? Math.min(5, hw.max) : 5;
+    function zoomUI() {
+      const opts = [.5, 1, 2, 5].filter(v => v >= zMin() - 1e-6 && v <= zMax() + 1e-6);
+      $("zooms").innerHTML = opts.map(v => `<button type="button" data-z="${v}" class="${Math.abs(v - zoom) < .05 ? "on" : ""}">${Math.abs(v - zoom) < .05 ? v + "×" : (v === .5 ? ".5" : v)}</button>`).join("");
+      $("zooms").querySelectorAll("button").forEach(b => b.onclick = () => setZoom(+b.dataset.z, true));
+    }
+    let zT = 0;
+    function setZoom(v, lbl) {
+      zoom = Math.max(zMin(), Math.min(zMax(), v));
+      if (hw && track) { try { track.applyConstraints({ advanced: [{ zoom }] }); } catch (_) { } }
+      zoomUI(); if (lbl) { const l = $("zoomLbl"); l.textContent = (Math.round(zoom * 10) / 10) + "×"; l.style.opacity = 1; clearTimeout(zT); zT = setTimeout(() => l.style.opacity = 0, 700); }
+    }
+    { const pts = new Map(); let d0 = 0, z0 = 1; const cv = $("view");   // pinch on the live view
+      cv.addEventListener("pointerdown", e => { pts.set(e.pointerId, e); if (pts.size === 2) { const [a, b] = [...pts.values()]; d0 = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY); z0 = zoom; } });
+      cv.addEventListener("pointermove", e => { if (!pts.has(e.pointerId)) return; pts.set(e.pointerId, e); if (pts.size === 2 && d0) { const [a, b] = [...pts.values()]; setZoom(z0 * Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) / d0, true); } });
+      const up = e => { pts.delete(e.pointerId); if (pts.size < 2) d0 = 0; }; cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up); }
+    function progUI() {
+      $("prog").innerHTML = Array.from({ length: N }, (_, i) => `<span class="th${shots[i] && i !== cur ? " done" : ""}${i === cur ? " cur" : ""}" data-i="${i}">${i + 1}</span>`).join("");
+      $("prog").querySelectorAll(".th.done").forEach(e => { const s = shots[+e.dataset.i]; if (s) e.style.backgroundImage = `url(${s._th || (s._th = thumb(s))})`; });
+      $("stepPill").textContent = retakeOne >= 0 ? `מצלמים מחדש את תמונה ${cur + 1}` : `תמונה ${cur + 1} מתוך ${N}` + (cur === N - 1 ? " · האחרונה!" : "");
+    }
+    const thumb = s => { const c = document.createElement("canvas"), k = 96 / Math.max(s.width, s.height); c.width = Math.round(s.width * k); c.height = Math.round(s.height * k); c.getContext("2d").drawImage(s, 0, 0, c.width, c.height); return c.toDataURL("image/jpeg", .7); };
+    function capture() {   // the photo window only (cropped to the strip's window shape), mirrored exactly as it was seen
+      const vw = video.videoWidth, vh = video.videoHeight, z = hw ? 1 : zoom;
+      let cw = vw, ch = vw / A; if (ch > vh) { ch = vh; cw = vh * A; } cw /= z; ch /= z;
+      const k = Math.min(1, 1600 / cw), c = document.createElement("canvas"); c.width = Math.round(cw * k); c.height = Math.round(ch * k);
+      const x = c.getContext("2d"); if (facing === "user") { x.translate(c.width, 0); x.scale(-1, 1); }
+      x.drawImage(video, (vw - cw) / 2, (vh - ch) / 2, cw, ch, 0, 0, c.width, c.height); return c;
+    }
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    async function startCam(i, one) {
+      cur = i; retakeOne = one ? i : -1; progUI(); show("cam"); loop();
+      try { await openCam(); }
+      catch (e) { D("camera error: " + (e.name || "") + " " + (e.message || e)); stopCam(); $("file").click(); }
+    }
+    $("go").onclick = () => { shots = []; startCam(0); };
+    $("close").onclick = () => { stopCam(); shots.length ? toReview() : show("start"); };
+    $("flip").onclick = async () => { facing = facing === "user" ? "environment" : "user"; try { await openCam(); } catch (e) { D("flip error: " + e.name); } };
+    $("flashB").onclick = () => { flashOn = !flashOn; flashUI(); };
+    function took(c) {
+      shots[cur] = c;
+      if (retakeOne >= 0) { stopCam(); return toReview(); }
+      let n2 = -1; for (let i = 0; i < N; i++) if (!shots[i]) { n2 = i; break; }   // the next empty window
+      if (n2 < 0) { stopCam(); return toReview(); }
+      cur = n2; progUI();
+    }
+    $("snap").onclick = async () => {
+      if (busy || !video || !video.videoWidth) return; busy = true;
+      const fl = $("flash"); let c;
+      if (flashOn && facing === "environment" && torch) {
+        try { await track.applyConstraints({ advanced: [{ torch: true }] }); await wait(450); } catch (_) { }
+        c = capture(); try { await track.applyConstraints({ advanced: [{ torch: false }] }); } catch (_) { }
+      } else if (flashOn) { fl.style.transition = "none"; fl.style.opacity = 1; await wait(380); c = capture(); await wait(60); }
+      else c = capture();
+      fl.style.transition = "none"; fl.style.opacity = flashOn ? 1 : .7; requestAnimationFrame(() => { fl.style.transition = "opacity .35s"; fl.style.opacity = 0; });
+      busy = false; took(c);
+    };
+    $("file").onchange = () => {   // the phone's own camera, when the camera inside the page is not allowed
+      const f = $("file").files[0]; $("file").value = ""; if (!f) { shots.length ? toReview() : show("start"); return; }
+      const im = new Image(); im.onload = () => { let cw = im.naturalWidth, ch = cw / A; if (ch > im.naturalHeight) { ch = im.naturalHeight; cw = ch * A; }
+        const k = Math.min(1, 1600 / cw), c = document.createElement("canvas"); c.width = Math.round(cw * k); c.height = Math.round(ch * k);
+        c.getContext("2d").drawImage(im, (im.naturalWidth - cw) / 2, (im.naturalHeight - ch) / 2, cw, ch, 0, 0, c.width, c.height); URL.revokeObjectURL(im.src);
+        shots[cur] = c; let n2 = -1; for (let i = 0; i < N; i++) if (!shots[i]) { n2 = i; break; }
+        if (retakeOne < 0 && n2 >= 0) { cur = n2; $("file").click(); } else toReview(); };
+      im.src = URL.createObjectURL(f);
+    };
+
+    // ---------- review: the whole strip, retake one photo, filter ----------
+    const FILTERS = [["none", "מקורי"], ["enhance", "משופר"], ["bw", "שחור־לבן"], ["sepia", "ספיה"]];
+    function fx(src, k) {   // a preview of the filter in plain pixels (the print itself is filtered on the iPad)
+      if (!k || k === "none") return src;
+      const c = document.createElement("canvas"); c.width = src.width; c.height = src.height; const x = c.getContext("2d"); x.drawImage(src, 0, 0);
+      const id = x.getImageData(0, 0, c.width, c.height), d = id.data, cl = v => v < 0 ? 0 : v > 255 ? 255 : v; let i, r, g, b, l, m;
+      for (i = 0; i < d.length; i += 4) { r = d[i]; g = d[i + 1]; b = d[i + 2];
+        if (k === "bw") { l = cl((0.36 * r + 0.54 * g + 0.10 * b - 128) * 1.12 + 130); d[i] = d[i + 1] = d[i + 2] = l; }
+        else if (k === "sepia") { l = cl((0.33 * r + 0.55 * g + 0.12 * b - 128) * 1.05 + 128) / 255; d[i] = cl(255 * (0.10 + 0.92 * l)); d[i + 1] = cl(255 * (0.05 + 0.86 * l)); d[i + 2] = cl(255 * (0.02 + 0.70 * l * l + 0.08 * l)); }
+        else { m = (r + g + b) / 3; r = m + (r - m) * 1.22; g = m + (g - m) * 1.22; b = m + (b - m) * 1.22; d[i] = cl((r - 128) * 1.06 + 132); d[i + 1] = cl((g - 128) * 1.06 + 132); d[i + 2] = cl((b - 128) * 1.06 + 131); } }
+      x.putImageData(id, 0, 0); return c;
+    }
+    const small = s => { const c = document.createElement("canvas"), k = Math.min(1, 520 / s.width); c.width = Math.round(s.width * k); c.height = Math.round(s.height * k); c.getContext("2d").drawImage(s, 0, 0, c.width, c.height); return c; };
+    function drawReview() {
+      const c = $("stripC"), box = $("review").querySelector(".rvMid").getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+      const sc = stripCanvas(shots.map(s => fx(s._sm || (s._sm = small(s)), filter)), Math.round(Math.max(300, box.height) * dpr));
+      c.width = sc.width; c.height = sc.height; c.getContext("2d").drawImage(sc, 0, 0); c.style.height = Math.max(240, box.height) + "px";
+    }
+    function toReview() {
+      show("review");
+      $("again").innerHTML = Array.from({ length: N }, (_, i) => `<button type="button" class="chip" data-i="${i}">↺ תמונה ${i + 1}</button>`).join("");
+      $("again").querySelectorAll("button").forEach(b => b.onclick = () => startCam(+b.dataset.i, true));
+      const missing = shots.filter(Boolean).length < N; $("send").disabled = missing;
+      if (CFG.filtersOn !== false) {
+        $("filters").hidden = false;
+        $("filters").innerHTML = FILTERS.map(f => `<button type="button" class="chip${f[0] === filter ? " on" : ""}" data-f="${f[0]}">${f[1]}</button>`).join("");
+        $("filters").querySelectorAll("button").forEach(b => b.onclick = () => { filter = b.dataset.f; $("filters").querySelectorAll("button").forEach(q => q.classList.toggle("on", q === b)); drawReview(); });
+      }
+      requestAnimationFrame(drawReview);
+    }
+    $("stripC").onclick = e => {   // tap a photo in the strip = retake only that one
+      const r = $("stripC").getBoundingClientRect(), fx0 = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
+      const wins = WINS || Array.from({ length: N }, (_, i) => ({ x: .07, y: .023 + i * (.78 / N), w: .86, h: .78 / N - .015 }));
+      const i = wins.findIndex(w => fx0 >= w.x && fx0 <= w.x + w.w && fy >= w.y && fy <= w.y + w.h); if (i >= 0) startCam(i, true);
+    };
+    addEventListener("resize", () => { if (!$("review").hidden) drawReview(); });
+    $("redo").onclick = () => { shots = []; startCam(0); };
+    // ---------- send: the N photos one under the other in ONE picture (the iPad cuts them apart and makes the strip) ----------
+    $("send").onclick = async () => {
+      if ($("send").disabled) return; $("send").disabled = true; show("sending");
+      const W = 1000, h = Math.round(W / A), c = document.createElement("canvas"); c.width = W; c.height = h * N; const x = c.getContext("2d");
+      shots.forEach((s, i) => drawCover(x, s, { x: 0, y: i * h, w: W, h }));
+      let q = .88, data = c.toDataURL("image/jpeg", q); while (data.length > 3.9e6 && q > .5) { q -= .08; data = c.toDataURL("image/jpeg", q); }   // the script takes up to 3 MB
+      const ok = r => {
+        $("send").disabled = false;
+        if (r && r.ok) { $("doneImg").src = $("stripC").toDataURL("image/jpeg", .85); show("done"); }
+        else if (r && r.used) msg("הקוד הזה כבר נוצל", "כל סריקה = סטריפ אחד. לעוד סטריפ – סרקו שוב את הקוד בעמדה.", "🔁");
+        else msg("ההדפסה לא נשלחה", (r && r.error) || "נסו שוב בעוד רגע.");
+      };
+      const fail = () => { $("send").disabled = false; msg("אין חיבור", "בדקו שיש אינטרנט בטלפון ונסו שוב.", "📶"); };
+      if (RELAY) fetch(RELAY + "?a=upload", { method: "POST", credentials: "omit", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ token: TOKEN, data, filter }) }).then(r => r.json()).then(ok).catch(fail);
+      else if (window.google && google.script) google.script.run.withSuccessHandler(ok).withFailureHandler(fail).upload(TOKEN, data, filter);
+      else fail();
+    };
+    flashUI();
+  }
+})();
+</script>
+</body>
+</html>
