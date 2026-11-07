@@ -183,7 +183,7 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
     else { g.disabled = false; g.textContent = "📸 פתחו מצלמה"; }
   }
   setInterval(() => { if (!$("start").hidden && !document.hidden) meLoad(); }, 5000);   // opened / closed at the stand → the phone follows without a reload
-  const PAGE_V = "83";
+  const PAGE_V = "85";
   const diag = []; const D = t => { diag.push(t); $("diag").textContent = diag.join("\n"); };
   const ua = navigator.userAgent || "", inApp = /FBAN|FBAV|Instagram|Line\/|WhatsApp|Snapchat|TikTok|MicroMessenger/i.test(ua);
   D("Pocket camera " + PAGE_V); D("secure: " + (window.isSecureContext ? "yes" : "NO") + " · getUserMedia: " + (navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? "yes" : "NO") + " · in-app: " + (inApp ? "yes" : "no"));
@@ -204,13 +204,18 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
     const wm = (dark, sel, txt) => { const src = dark ? cfg.wmLight : cfg.wmDark; /* "light" = light letters, for a dark background */ if (!src) return; document.querySelectorAll(sel).forEach(i => { i.src = src; i.hidden = false; }); document.querySelectorAll(txt).forEach(t => t.hidden = true); };
     wm(T.dark, ".wmImg", ".wmTxt"); wm(T.dark, ".wmImgCam", ".wmTxtCam");   // the real MAGNEX wordmark (its colours), light/dark version by the design
     const ld = (k, f) => { if (!f || !f.png) return; const im = new Image(); im.onload = () => { frames[k] = im; if (k === "portrait") heroDraw(); try { miniDraw(); } catch (_) { } }; im.src = f.png; };
+    HERO_SRC = cfg.hero || ""; HERO_IM = null; HERO_Y = Math.min(1, Math.max(0, cfg.heroY ?? 0.3)); HERO_Z = Math.min(2, Math.max(1, +cfg.heroZ || 1));   // the couple's photo (MAGNEX → Pocket setup) instead of the sample
     ld("portrait", cfg.frameP); ld("landscape", cfg.frameL);
     if (cfg.flash === false) flashOn = false; flashUI();
     meLoad();
   }
+  var HERO_SRC = "", HERO_IM = null, HERO_Y = 0.3, HERO_Z = 1;
   function heroDraw() {
-    const f = frames.portrait; if (!f) return; const c = document.createElement("canvas"); c.width = f.width; c.height = f.height; const x = c.getContext("2d");
-    const g = x.createLinearGradient(0, 0, 0, c.height); g.addColorStop(0, "#a9cbe6"); g.addColorStop(.62, "#f3d9bd"); g.addColorStop(1, "#c9a27c"); x.fillStyle = g; x.fillRect(0, 0, c.width, c.height);
+    const f = frames.portrait; if (!f) return;
+    if (HERO_SRC && !HERO_IM) { const im = new Image(); im.onload = () => { HERO_IM = im; heroDraw(); }; im.onerror = () => { HERO_SRC = ""; heroDraw(); }; im.src = HERO_SRC; return; }
+    const c = document.createElement("canvas"); c.width = f.width; c.height = f.height; const x = c.getContext("2d");
+    if (HERO_IM) { const k = Math.max(c.width / HERO_IM.width, c.height / HERO_IM.height) * HERO_Z, w = HERO_IM.width * k, h = HERO_IM.height * k; x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.drawImage(HERO_IM, (c.width - w) / 2, (c.height - h) * HERO_Y, w, h); }
+    else { const g = x.createLinearGradient(0, 0, 0, c.height); g.addColorStop(0, "#a9cbe6"); g.addColorStop(.62, "#f3d9bd"); g.addColorStop(1, "#c9a27c"); x.fillStyle = g; x.fillRect(0, 0, c.width, c.height); }
     x.drawImage(f, 0, 0); $("hero").src = c.toDataURL("image/jpeg", .85); $("hero").hidden = false;
   }
   // the last design this phone saw is shown at once (same event = same look); the fresh one replaces it a moment later
