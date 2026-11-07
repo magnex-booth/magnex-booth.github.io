@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0912">
+<meta name="robots" content="noindex">
+<title>MAGNEX Pocket</title>
+<link id="fontLink" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;800;900&display=swap">
+<style>
+:root{--bg:#0b0912;--fg:#fff;--muted:#c3bcd2;--line:rgba(255,255,255,.16);--acc:#ff4fd8;--pri:linear-gradient(135deg,#ff4fd8,#ff8a3d 60%,#ffd23d);--priFg:#1a0d14;--secBg:rgba(255,255,255,.08);--secFg:#fff;--ff:Heebo;--rad:999px;--camBg:#0b0912;--camFg:#fff;--camBtn:rgba(255,255,255,.14)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:var(--ff),-apple-system,system-ui,"Segoe UI",Arial,sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none}
+button{font:inherit;cursor:pointer}
+[hidden]{display:none!important}
+.scr{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center}
+/* the brand: the Pocket logo + the real MAGNEX wordmark + "Pocket" */
+.brand{display:flex;align-items:center;gap:10px;direction:ltr}
+.brand .ic{width:86px;height:86px;object-fit:contain;flex:none;border-radius:20px}   /* the new Pocket icon (pocket + phone + magnet) – no text to hide any more */
+.brand .wmw{display:flex;flex-direction:column;align-items:center;line-height:1}   /* "Pocket" centred under MAGNEX print lazy */
+.brand .wmi{height:27px;width:116px;object-fit:cover;object-position:50% 0;display:block}   /* MAGNEX only – the "print lazy" line is cut off */
+.brand .pk{font-weight:900;font-size:20px;letter-spacing:.5px;color:var(--acc);margin-top:1px;line-height:1}
+.brand .wmt{font-weight:900;font-size:30px}
+.brand.sm .ic{width:60px;height:60px;border-radius:14px}.brand.sm .wmi{height:20px;width:86px}.brand.sm .pk{font-size:15px;margin-top:0}.brand.sm .wmt{font-size:23px}
+/* pages */
+.page{overflow:auto;padding:max(22px,env(safe-area-inset-top)) 20px max(24px,env(safe-area-inset-bottom));gap:14px;text-align:center}
+.page h1{margin:0;font-size:30px;font-weight:900;line-height:1.12}
+.ev2{margin:0;font-size:15px;opacity:.75}
+.sub{color:var(--muted);font-size:16px;line-height:1.5;margin:0;max-width:440px}
+.quota{font-size:13px;font-weight:700;padding:5px 14px;border-radius:99px;background:var(--secBg);border:1px solid var(--line)}
+.btn{font-weight:800;border:0;border-radius:var(--rad);padding:17px 24px;font-size:20px;width:100%;max-width:440px}
+.btn:disabled{opacity:.55}
+.pri{background:var(--pri);color:var(--priFg)}
+.sec{background:var(--secBg);color:var(--secFg);border:1.5px solid var(--line);font-size:17px;padding:14px}
+#hero{width:min(62vw,290px);height:auto;border-radius:3px;box-shadow:0 18px 40px rgba(0,0,0,.4);transform:rotate(-2deg);margin:6px 0}
+details.diag{font-size:11.5px;color:var(--muted);max-width:440px;width:100%;margin-top:auto}
+details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:break-word;margin:6px 0 0}
+/* camera */
+#cam{background:var(--camBg)}
+#view{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.ctop{position:absolute;top:0;left:0;right:0;padding:max(10px,env(safe-area-inset-top)) 14px 0;display:flex;align-items:center;justify-content:space-between;z-index:2;pointer-events:none}
+.ctop>*{pointer-events:auto}
+.rbtn{width:46px;height:46px;border-radius:50%;border:0;background:var(--camBtn);color:var(--camFg);display:flex;align-items:center;justify-content:center;flex:none}
+.cbot{position:absolute;bottom:0;left:0;right:0;padding:0 22px max(16px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px;z-index:2;pointer-events:none}
+.cbot>*{pointer-events:auto}
+.zooms{align-self:center;display:flex;gap:6px;background:rgba(0,0,0,.35);border-radius:99px;padding:4px}
+.zooms button{min-width:40px;height:34px;border-radius:99px;border:0;background:none;color:#fff;font-weight:800;font-size:13px;padding:0 8px}
+.zooms button.on{background:rgba(255,255,255,.92);color:#111}
+.crow{display:flex;align-items:center;justify-content:space-between}
+/* one big switch (portrait ⇄ landscape) on the right, the shutter on the left */
+.otog{flex:1;margin-inline-end:16px;height:96px;border-radius:26px;border:2px solid var(--acc);background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 24%,transparent),rgba(255,138,61,.12));color:var(--camFg);display:flex;align-items:center;gap:14px;padding:0 14px;box-shadow:0 0 22px color-mix(in srgb,var(--acc) 40%,transparent);text-align:start}
+.otog:active{transform:scale(.98)}
+.omini{flex:none;width:70px;height:52px;background:#fff;padding:5px 5px 12px;box-shadow:0 6px 14px rgba(0,0,0,.4);transform:rotate(-6deg);display:block}
+.omini i{display:block;width:100%;height:100%;background:linear-gradient(180deg,#a9cbe6,#f3d9bd 62%,#c9a27c) center/cover}
+.otog.land .omini{width:44px;height:60px;padding:5px 5px 13px}
+.otx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.otx b{font-size:21px;font-weight:900;line-height:1.1}.otx small{font-size:13px;opacity:.8;line-height:1.25}
+.shutter{width:92px;height:92px;border-radius:50%;border:6px solid var(--camFg);background:transparent;padding:6px;flex:none}
+.shutter span{display:block;width:100%;height:100%;border-radius:50%;background:var(--acc);transition:transform .1s}
+.shutter:active span{transform:scale(.9)}
+#rotHint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:3;background:rgba(0,0,0,.6);color:#fff;font-weight:800;font-size:16px;padding:16px 20px;border-radius:18px;display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none;transition:opacity .4s}
+#zoomLbl{position:absolute;left:50%;transform:translateX(-50%);top:45%;z-index:3;background:rgba(0,0,0,.55);color:#fff;font-weight:900;font-size:22px;padding:8px 16px;border-radius:99px;pointer-events:none;opacity:0;transition:opacity .3s}
+#flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:4;transition:opacity .35s}
+#cam.rot #camBrand{display:none}   /* turned landscape view: room for ⟳ and ⇅ */
+#flashB.off{opacity:.55}#flashB.off svg{fill:none}
+#flashB.on{background:#ffd23d;color:#111}
+@media (orientation:landscape) and (max-height:560px){
+  .cbot{top:0;bottom:0;left:auto;right:0;width:auto;justify-content:center;padding:max(10px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) 10px 10px}
+  .cbot{gap:8px}.crow{flex-direction:column;gap:10px}.zooms{flex-direction:row}.zooms button{min-width:34px;height:30px}
+  .shutter{width:66px;height:66px;border-width:4px;padding:4px}
+  .otog{flex:none;margin:0;width:150px;height:auto;flex-direction:column;gap:6px;padding:10px 8px;text-align:center}.otx small{display:none}.otx b{font-size:16px}
+  .ctop{right:auto;flex-direction:column;gap:12px;height:100%;justify-content:center;padding:10px 10px 10px max(14px,env(safe-area-inset-left))}
+  .ctop .brand{display:none}
+}
+/* review: move + pinch inside the magnet */
+#review{padding:max(10px,env(safe-area-inset-top)) 12px max(14px,env(safe-area-inset-bottom));gap:8px}
+.rvTop{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:560px;direction:ltr}
+.rvT{margin:0;font-size:24px;font-weight:900;direction:rtl}
+#edit{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;touch-action:none}
+#editC{display:block;border-radius:3px;box-shadow:0 16px 40px rgba(0,0,0,.45);background:#fff;touch-action:none;cursor:grab}
+.ehint{font-size:13px;color:var(--muted);margin:0}
+.rvBtns{display:flex;gap:10px;width:100%;max-width:560px}
+.rvBtns .btn{flex:1;padding:11px 8px;font-size:16px}.rvBtns .sec{flex:.8}
+#review.land .rvTop{display:none}   /* a landscape magnet: no logo – all the room for the picture */
+#review.land{gap:6px}
+@media (orientation:landscape) and (max-height:560px){
+  #review{flex-direction:row;align-items:stretch;padding:max(8px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) 8px max(10px,env(safe-area-inset-left))}
+  #review .rvTop{display:none}#review .ehint{display:none}
+  #review .rvBtns{flex-direction:column;justify-content:center;width:150px;flex:none}
+  #review .rvBtns .btn{flex:none;font-size:16px;padding:14px 8px}
+}
+</style>
+</head>
+<body>
+<section class="scr page" id="start">
+  <div class="brand"><img class="ic lg" alt="" hidden><div class="wmw"><img class="wmi wmImg" alt="MAGNEX" hidden><span class="wmt wmTxt">MAGNEX</span><span class="pk">Pocket</span></div></div>
+  <div class="quota" id="quota">&nbsp;</div>
+  <div><h1 id="evName">MAGNEX Pocket</h1><p class="ev2" id="evSub" hidden></p></div>
+  <img id="hero" alt="" hidden>
+  <button class="btn pri" id="go" type="button">📸 פתחו מצלמה</button>
+  <p class="sub" style="font-size:13px">הקוד שלכם: <b dir="ltr" class="mycode"></b></p>
+  <details class="diag"><summary>פרטים טכניים</summary><pre id="diag"></pre></details>
+</section>
+
+<section class="scr" id="cam" hidden>
+  <canvas id="view"></canvas>
+  <div class="ctop">
+    <div style="display:flex;gap:8px"><button class="rbtn" id="close" type="button" aria-label="סגירה"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <button class="rbtn" id="flashB" type="button" aria-label="פלאש" aria-pressed="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></button></div>
+    <div class="brand sm" id="camBrand"><img class="ic lg" alt="" hidden><div class="wmw"><img class="wmi wmImgCam" alt="MAGNEX" hidden><span class="wmt wmTxtCam" style="color:var(--camFg)">MAGNEX</span><span class="pk">Pocket</span></div></div>
+    <button class="rbtn" id="rotPic" type="button" aria-label="סובב את התמונה" hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg></button>
+    <button class="rbtn" id="flip180" type="button" aria-label="הפוך את המסגרת" hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M7 8l5-5 5 5M7 16l5 5 5-5"/></svg></button>
+    <button class="rbtn" id="flip" type="button" aria-label="החלפת מצלמה"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9a8 8 0 0 1 14-3l2 2"/><path d="M20 4v4h-4"/><path d="M20 15a8 8 0 0 1-14 3l-2-2"/><path d="M4 20v-4h4"/></svg></button>
+  </div>
+  <div class="cbot">
+    <div class="zooms" id="zooms" role="group" aria-label="זום" dir="ltr" hidden></div>
+    <div class="crow">
+      <button class="otog" id="oTog" type="button"><span class="omini" id="oMini"><i></i></span><span class="otx"><b id="oLbl">צלמו לרוחב</b><small id="oSub">לוחצים ומסובבים את הטלפון</small></span></button>
+      <button class="shutter" id="snap" type="button" aria-label="צילום"><span></span></button>
+    </div>
+  </div>
+  <div id="rotHint" hidden><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M2 14a9 9 0 0 0 7 7M2 14l-1 3M2 14l3 .5"/></svg><span>סובבו את הטלפון לרוחב</span></div>
+  <div id="zoomLbl">1×</div>
+  <div id="dbg" hidden style="position:absolute;left:8px;right:8px;top:calc(max(10px,env(safe-area-inset-top)) + 54px);z-index:3;background:rgba(0,0,0,.7);color:#7CFC9A;font:700 12px/1.4 ui-monospace,Menlo,monospace;padding:6px 8px;border-radius:8px;text-align:center;direction:ltr;pointer-events:none"></div>
+  <div id="flash"></div>
+</section>
+
+<section class="scr" id="review" hidden>
+  <div class="rvTop"><div class="brand sm"><img class="ic lg" alt="" hidden><div class="wmw"><img class="wmi wmImg" alt="MAGNEX" hidden><span class="wmt wmTxt">MAGNEX</span><span class="pk">Pocket</span></div></div><h1 class="rvT">אהבתם?</h1></div>
+  <div id="edit"><canvas id="editC"></canvas></div>
+  <p class="ehint">🤏 שתי אצבעות להגדלה · ☝️ ואז גוררים למקם</p>
+  <div class="rvBtns"><button class="btn sec" id="again" type="button">↺ צלמו שוב</button><button class="btn pri" id="ok" type="button">✓ שלחו להדפסה</button></div>
+</section>
+
+<section class="scr page" id="sent" hidden>
+  <div class="brand sm"><img class="ic lg" alt="" hidden><div class="wmw"><img class="wmi wmImg" alt="MAGNEX" hidden><span class="wmt wmTxt">MAGNEX</span><span class="pk">Pocket</span></div></div>
+  <h1 style="margin-top:14px" id="sentT">המגנט שלכם בדרך!</h1>
+  <p class="sub" id="sentX">גשו לעמדת המגנטים – הוא יוצא שם בקרוב.</p>
+  <img id="sentImg" alt="" style="width:min(56vw,260px);height:auto;border-radius:3px;box-shadow:0 16px 36px rgba(0,0,0,.45);transform:rotate(-3deg);margin:6px 0">
+  <div class="quota" id="sentQ"></div>
+  <button class="btn pri" id="restart" type="button">📸 עוד מגנט</button>
+  <p class="sub" style="font-size:13px">הקוד שלכם: <b dir="ltr" class="mycode"></b> · למגנט נוסף פנו לצלם עם הקוד</p>
+</section>
+
+<input type="file" id="file" accept="image/*" capture="user" hidden>
+
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id), show = id => ["start", "cam", "review", "sent"].forEach(s => $(s).hidden = s !== id);
+  const TH = {   // the 4 phone designs (MAGNEX → Pocket → "מה האורח רואה בטלפון")
+    booth: { dark: true, bg: "#0b0912", fg: "#fff", muted: "#c3bcd2", line: "rgba(255,255,255,.16)", acc: "#ff4fd8", pri: "linear-gradient(135deg,#ff4fd8,#ff8a3d 60%,#ffd23d)", priFg: "#1a0d14", secBg: "rgba(255,255,255,.08)", secFg: "#fff", rad: "999px", camBg: "#0b0912", camFg: "#fff", camBtn: "rgba(255,255,255,.14)" },
+    fridge: { dark: false, bg: "#fff7ef", fg: "#2b1d27", muted: "#6b5562", line: "#ead9cc", acc: "#c2185b", pri: "#c2185b", priFg: "#fff", secBg: "#fff", secFg: "#2b1d27", rad: "30px", camBg: "#fff7ef", camFg: "#2b1d27", camBtn: "rgba(43,29,39,.08)" },
+    pop: { dark: false, bg: "#ffd23d", fg: "#111", muted: "#111", line: "#111", acc: "#ff3d6e", pri: "#ff3d6e", priFg: "#fff", secBg: "#fff", secFg: "#111", rad: "16px", camBg: "#ffd23d", camFg: "#111", camBtn: "rgba(0,0,0,.1)" },
+    ivory: { dark: false, bg: "#f6f1e7", fg: "#2a2219", muted: "#6b5e4c", line: "#d8cbb4", acc: "#a8894f", pri: "#2a2219", priFg: "#f6f1e7", secBg: "transparent", secFg: "#2a2219", rad: "999px", camBg: "#f6f1e7", camFg: "#2a2219", camBtn: "rgba(42,34,25,.08)" }
+  };
+  // ---------- where the page talks to: the MAGNEX computer (/camtest, same WiFi) or the stand's own Google script
+  // (the internet page magnex-booth.github.io/pocket/#<script id> – the same route as the photobooth's phone photos)
+  const RELAY = (() => { const h = decodeURIComponent((location.hash || "").replace(/^#/, "")).trim();
+    if (/^http:\/\/127\.0\.0\.1:\d+\/exec$/.test(h)) return h;                     // local tests only
+    if (/^[\w-]{20,}$/.test(h)) return "https://script.google.com/macros/s/" + h + "/exec";
+    const m = /^([\w.-]+)\/([\w-]{20,})$/.exec(h); return m ? "https://script.google.com/a/macros/" + m[1] + "/s/" + m[2] + "/exec" : null; })();
+  const getJ = u => fetch(u, { cache: "no-store", credentials: "omit" }).then(r => r.json());
+  // ---------- the phone's code + quota ----------
+  const AB = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = ""; try { code = localStorage.getItem("mxpk_code") || ""; } catch (_) { }
+  if (!/^[A-Z0-9]{3}$/.test(code)) { code = Array.from(crypto.getRandomValues(new Uint8Array(3)), v => AB[v % AB.length]).join(""); try { localStorage.setItem("mxpk_code", code); } catch (_) { } }
+  document.querySelectorAll(".mycode").forEach(e => e.textContent = code);
+  let me = { used: 0, quota: 4, open: true, blocked: false };
+  const meTxt = () => `נשארו ${Math.max(0, me.quota - me.used)} מתוך ${me.quota} מגנטים`;
+  let pv0 = null;   // the page's version on the computer – after a MAGNEX update the phone reloads by itself (only on the start screen)
+  const meLoad = () => getJ(RELAY ? RELAY + "?a=pkme&c=" + code : "/camtest/me?code=" + code).then(j => {
+    if (j.pv) { if (pv0 === null) { pv0 = j.pv; D("page: " + new Date(j.pv * 1000).toLocaleString("he-IL")); } else if (j.pv !== pv0 && !$("start").hidden) { location.reload(); return; } }
+    me = j; $("quota").textContent = meTxt(); gate(); }).catch(() => { });
+  function gate() {
+    const g = $("go"), left = me.quota - me.used;
+    if (!me.open) { g.disabled = true; g.textContent = "Pocket סגור כרגע"; }
+    else if (me.blocked || left <= 0) { g.disabled = true; g.textContent = "נגמרו המגנטים שלכם 🧲"; }
+    else { g.disabled = false; g.textContent = "📸 פתחו מצלמה"; }
+  }
+  setInterval(() => { if (!$("start").hidden && !document.hidden) meLoad(); }, 5000);   // opened / closed at the stand → the phone follows without a reload
+  const PAGE_V = "78";
+  const diag = []; const D = t => { diag.push(t); $("diag").textContent = diag.join("\n"); };
+  const ua = navigator.userAgent || "", inApp = /FBAN|FBAV|Instagram|Line\/|WhatsApp|Snapchat|TikTok|MicroMessenger/i.test(ua);
+  D("Pocket camera " + PAGE_V); D("secure: " + (window.isSecureContext ? "yes" : "NO") + " · getUserMedia: " + (navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? "yes" : "NO") + " · in-app: " + (inApp ? "yes" : "no"));
+
+  // ---------- design from MAGNEX ----------
+  let cfg = {}, T = TH.booth;
+  const frames = { portrait: null, landscape: null };
+  function applyCfg() {
+    T = TH[cfg.theme] || TH.booth; const r = document.documentElement.style;
+    for (const k of ["bg", "fg", "muted", "line", "acc", "pri", "priFg", "secBg", "secFg", "rad", "camBg", "camFg", "camBtn"]) r.setProperty("--" + k, T[k]);
+    document.querySelector('meta[name="theme-color"]').content = T.bg;
+    if (cfg.font) { $("fontLink").href = "https://fonts.googleapis.com/css2?family=" + cfg.font + "&display=swap"; r.setProperty("--ff", `"${cfg.ff || "Heebo"}"`); }
+    if (cfg.theme === "ivory") document.querySelectorAll(".page h1").forEach(h => { h.style.fontFamily = "'Frank Ruhl Libre',serif"; h.style.fontWeight = "300"; });
+    if (cfg.theme === "pop") ["go", "ok"].forEach(id => { $(id).style.border = "3px solid #111"; $(id).style.boxShadow = "5px 5px 0 #111"; });
+    if (cfg.name) { $("evName").textContent = cfg.name; document.title = cfg.name + " · MAGNEX Pocket"; }
+    if (cfg.sub) { $("evSub").textContent = cfg.sub; $("evSub").hidden = false; }
+    if (cfg.logo) document.querySelectorAll(".lg").forEach(i => { i.src = cfg.logo; i.hidden = false; });
+    const wm = (dark, sel, txt) => { const src = dark ? cfg.wmLight : cfg.wmDark; /* "light" = light letters, for a dark background */ if (!src) return; document.querySelectorAll(sel).forEach(i => { i.src = src; i.hidden = false; }); document.querySelectorAll(txt).forEach(t => t.hidden = true); };
+    wm(T.dark, ".wmImg", ".wmTxt"); wm(T.dark, ".wmImgCam", ".wmTxtCam");   // the real MAGNEX wordmark (its colours), light/dark version by the design
+    const ld = (k, f) => { if (!f || !f.png) return; const im = new Image(); im.onload = () => { frames[k] = im; if (k === "portrait") heroDraw(); try { miniDraw(); } catch (_) { } }; im.src = f.png; };
+    ld("portrait", cfg.frameP); ld("landscape", cfg.frameL);
+    if (cfg.flash === false) flashOn = false; flashUI();
+    meLoad();
+  }
+  function heroDraw() {
+    const f = frames.portrait; if (!f) return; const c = document.createElement("canvas"); c.width = f.width; c.height = f.height; const x = c.getContext("2d");
+    const g = x.createLinearGradient(0, 0, 0, c.height); g.addColorStop(0, "#a9cbe6"); g.addColorStop(.62, "#f3d9bd"); g.addColorStop(1, "#c9a27c"); x.fillStyle = g; x.fillRect(0, 0, c.width, c.height);
+    x.drawImage(f, 0, 0); $("hero").src = c.toDataURL("image/jpeg", .85); $("hero").hidden = false;
+  }
+  getJ(RELAY ? RELAY + "?a=pkpage" : "/camtest/cfg").then(j => { cfg = j || {}; if (RELAY && !j.ok) { me.open = false; D("cloud: " + (j.msg || "off")); } D("frame from MAGNEX: " + (cfg.frameP && cfg.frameP.frame ? "yes" : "no")); applyCfg(); }).catch(() => { D("cfg: none"); applyCfg(); });
+
+  // ---------- camera ----------
+  let flashOn = true;   // flash on every picture (MAGNEX can turn the default off)
+  const flashUI = () => { const b = $("flashB"); b.classList.toggle("on", flashOn); b.classList.toggle("off", !flashOn); b.setAttribute("aria-pressed", flashOn ? "true" : "false"); };
+  let orient = "portrait", facing = "user", stream = null, track = null, video = null, raf = 0, busy = false;
+  let hw = null, zoom = 1, torch = false;   // hw = the camera's own zoom range (0.5× needs it); otherwise a digital zoom 1–5×
+  const ASPECT = { portrait: 3 / 4, landscape: 4 / 3 };
+  let rotSign = 1, motionOk = false;
+  const IOSD = /iPhone|iPad|iPod/.test(ua) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(ua));
+  let manualRot = false;
+  function onMotion(e) { const g = e.accelerationIncludingGravity; if (!g || g.x == null || manualRot) return; const ux = IOSD ? -g.x : g.x; if (ux > 6) rotSign = 1; else if (ux < -6) rotSign = -1; }
+  async function wantMotion() {   // iPhone asks once ("motion & orientation"); Android needs no permission
+    if (motionOk) return; try { if (window.DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission === "function") { const r = await DeviceMotionEvent.requestPermission(); if (r !== "granted") { D("motion: denied"); return; } }
+      addEventListener("devicemotion", onMotion); motionOk = true; D("motion: on"); } catch (e) { D("motion: " + (e.name || e)); } }
+  const rotated = () => orient === "landscape" && innerHeight > innerWidth;   // landscape magnet on an upright phone → drawn turned; the guest turns the phone
+  function frameRect(VW, VH, rot, land) {   // the magnet as big as possible in the view (between the controls)
+    const dpr = window.devicePixelRatio || 1, f = frames[orient], ar = f ? f.width / f.height : ASPECT[orient];
+    let L, R, Tp, B;
+    if (rot) { L = 88; R = 116; Tp = 6; B = 6; }          // view x = screen y: top bar on the left, controls on the right
+    else if (land) { L = 74; R = 160; Tp = 6; B = 6; }
+    else { L = 6; R = 6; Tp = 92; B = 116; }
+    L *= dpr; R *= dpr; Tp *= dpr; B *= dpr;
+    const aw = VW - L - R, ah = VH - Tp - B; let fw = aw, fh = fw / ar; if (fh > ah) { fh = ah; fw = fh * ar; }
+    return { x: L + (aw - fw) / 2, y: Tp + (ah - fh) / 2, w: fw, h: fh };
+  }
+  // the video, upright (turned when the phone is turned) and mirrored for a selfie, covering rect r with a digital zoom z
+  // how much the camera picture must be turned in the (turned) view: a stream that stays upright for the phone (portrait
+  // frames) is turned back; a stream the phone already turned with the world (landscape frames, iPhone) is used as it is.
+  // vidAdj = the guest's own correction (⟳, 90° per tap) when a phone does something else.
+  let vidAdj = 0;
+  // a landscape stream (the iPhone already turned it with the phone) needs a half turn in the turned view – tested on an
+  // iPhone (Eran, build 72: ⟳ twice = right); a portrait stream is turned back by a quarter.
+  // calibrated on Eran's iPhone (build 75): the stream stays portrait (1920x2560) when the phone is turned with rotation
+  // lock on, and the picture is upright with a quarter turn in the SAME direction as the view (turn = dir).
+  function vidTurn(rot) { const vw = video.videoWidth, vh = video.videoHeight; let q = !rot ? 0 : vw < vh ? rotSign : 0; q = ((q + vidAdj) % 4 + 4) % 4; return q; }   // quarter turns
+  function drawSrc(x, r, z, rot) {
+    const vw = video.videoWidth, vh = video.videoHeight, q = vidTurn(rot), sw = q % 2 ? vh : vw, sh = q % 2 ? vw : vh;
+    const s = Math.max(r.w / sw, r.h / sh) * z;
+    x.save(); x.beginPath(); x.rect(r.x, r.y, r.w, r.h); x.clip();
+    x.translate(r.x + r.w / 2, r.y + r.h / 2); if (facing === "user") x.scale(-1, 1); if (q) x.rotate(q * Math.PI / 2);
+    x.drawImage(video, -vw * s / 2, -vh * s / 2, vw * s, vh * s); x.restore();
+  }
+  function plainFrame(x, r) { const b = r.w * .045; x.save(); x.fillStyle = "#fff"; x.beginPath(); x.rect(r.x, r.y, r.w, r.h); x.rect(r.x + b, r.y + b, r.w - 2 * b, r.h - 2 * b); x.fill("evenodd"); x.restore(); }
+  const digital = () => hw ? 1 : zoom;
+  function loop() {
+    const c = $("view"), dpr = window.devicePixelRatio || 1, W = Math.round(innerWidth * dpr), H = Math.round(innerHeight * dpr);
+    if (c.width !== W || c.height !== H) { c.width = W; c.height = H; }
+    const x = c.getContext("2d"), rot = rotated();
+    x.setTransform(1, 0, 0, 1, 0, 0); x.fillStyle = T.camBg; x.fillRect(0, 0, W, H);   // only the magnet – nothing of the camera outside it
+    let VW = W, VH = H; if (rot) { if (rotSign > 0) { x.translate(W, 0); x.rotate(Math.PI / 2); } else { x.translate(0, H); x.rotate(-Math.PI / 2); } VW = H; VH = W; }
+    const r = frameRect(VW, VH, rot, W > H);
+    x.save(); x.shadowColor = "rgba(0,0,0,.35)"; x.shadowBlur = 24 * dpr; x.fillStyle = "#fff"; x.fillRect(r.x, r.y, r.w, r.h); x.restore();
+    if (video && video.videoWidth) drawSrc(x, r, digital(), rot);
+    const f = frames[orient]; if (f) x.drawImage(f, r.x, r.y, r.w, r.h); else plainFrame(x, r);
+    $("flip180").hidden = !rot || motionOk; $("rotPic").hidden = true;   // ⇅ only when the motion sensor was not allowed
+    if (false && rot && video && video.videoWidth) { const dbg = $("dbg"); const t = `stream ${video.videoWidth}x${video.videoHeight} | dir ${rotSign > 0 ? "+1" : "-1"} | sensor ${motionOk ? "ON" : "off"} | fix ${vidAdj} | turn ${vidTurn(true)}`; if (dbg.textContent !== t) dbg.textContent = t; dbg.hidden = false; } else $("dbg").hidden = true; $("cam").classList.toggle("rot", rot);   // always there in the turned landscape view: one tap turns the picture 180°
+    raf = requestAnimationFrame(loop);
+  }
+  async function openCam() {
+    if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) throw new Error("no getUserMedia");
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing, width: { ideal: 2560 }, height: { ideal: 1920 } }, audio: false });
+    track = stream.getVideoTracks()[0];
+    if (!video) { video = document.createElement("video"); video.playsInline = true; video.muted = true; video.setAttribute("playsinline", ""); }
+    video.srcObject = stream; await video.play();
+    hw = null; torch = false; try { const cp = track.getCapabilities ? track.getCapabilities() : {}; if (cp.zoom && cp.zoom.max > cp.zoom.min) hw = { min: cp.zoom.min, max: cp.zoom.max }; torch = !!cp.torch; } catch (_) { }
+    zoom = 1; zoomUI(); if (hw) setZoom(Math.max(hw.min, Math.min(hw.max, 1)));
+    vidAdj = 0; D("camera: " + facing + " " + video.videoWidth + "×" + video.videoHeight + " · zoom: " + (hw ? `camera ${hw.min}–${hw.max}` : "digital 1–5") + " · torch: " + (torch ? "yes" : "no"));
+  }
+  function stopCam() { cancelAnimationFrame(raf); if (stream) stream.getTracks().forEach(t => t.stop()); stream = null; track = null; }
+  // ---------- zoom 0.5× – 5× ----------
+  const zMin = () => hw ? Math.max(.5, hw.min) : 1, zMax = () => hw ? Math.min(5, hw.max) : 5;
+  function zoomUI() {
+    const opts = [.5, 1, 2, 5].filter(v => v >= zMin() - 1e-6 && v <= zMax() + 1e-6);
+    $("zooms").innerHTML = opts.map(v => `<button type="button" data-z="${v}" class="${Math.abs(v - zoom) < .05 ? "on" : ""}">${Math.abs(v - zoom) < .05 || !opts.some(o => Math.abs(o - zoom) < .05) && v === opts.reduce((a, b) => Math.abs(b - zoom) < Math.abs(a - zoom) ? b : a) ? (Math.round(zoom * 10) / 10) + "×" : (v === .5 ? ".5" : v)}</button>`).join("");
+    $("zooms").querySelectorAll("button").forEach(b => b.onclick = () => setZoom(+b.dataset.z, true));
+  }
+  let zT = 0;
+  function setZoom(v, flashLbl) {
+    zoom = Math.max(zMin(), Math.min(zMax(), v));
+    if (hw && track) { try { track.applyConstraints({ advanced: [{ zoom }] }); } catch (_) { } }
+    zoomUI(); if (flashLbl) { const l = $("zoomLbl"); l.textContent = (Math.round(zoom * 10) / 10) + "×"; l.style.opacity = 1; clearTimeout(zT); zT = setTimeout(() => l.style.opacity = 0, 700); }
+  }
+  { const pts = new Map(); let d0 = 0, z0 = 1; const cv = $("view");   // pinch on the live view
+    cv.addEventListener("pointerdown", e => { pts.set(e.pointerId, e); if (pts.size === 2) { const [a, b] = [...pts.values()]; d0 = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY); z0 = zoom; } });
+    cv.addEventListener("pointermove", e => { if (!pts.has(e.pointerId)) return; pts.set(e.pointerId, e); if (pts.size === 2 && d0) { const [a, b] = [...pts.values()]; setZoom(z0 * Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) / d0, true); } });
+    const up = e => { pts.delete(e.pointerId); if (pts.size < 2) d0 = 0; }; cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up); }
+  // ---------- orientation ----------
+  let hintT = 0;
+  function setOrient(o) {
+    orient = o; const land = o === "landscape", t = $("oTog"); t.classList.toggle("land", !land ? false : true);
+    // the switch always offers the OTHER way, with a little magnet of that shape
+    t.classList.toggle("land", land); $("oLbl").textContent = land ? "צלמו לאורך" : "צלמו לרוחב"; $("oSub").textContent = land ? "חזרה למגנט עומד" : "לוחצים ומסובבים את הטלפון";
+    t.setAttribute("aria-label", $("oLbl").textContent); miniDraw();
+    const h = $("rotHint"); if (rotated()) { h.hidden = false; h.style.opacity = 1; clearTimeout(hintT); hintT = setTimeout(() => { h.style.opacity = 0; setTimeout(() => h.hidden = true, 400); }, 2600); } else h.hidden = true;
+  }
+  addEventListener("resize", () => { if (innerWidth > innerHeight && orient === "portrait" && !$("cam").hidden) setOrient("landscape"); });   // the page itself turned → the landscape magnet
+  $("oTog").onclick = () => { if (orient === "portrait") { wantMotion(); setOrient("landscape"); } else setOrient("portrait"); };
+  function miniDraw() {   // the little magnet in the switch: the event's real frame of the OTHER shape
+    const f = frames[orient === "landscape" ? "portrait" : "landscape"], i = $("oMini").querySelector("i"); if (!f) return;
+    const c = document.createElement("canvas"); c.width = Math.round(f.width / 6); c.height = Math.round(f.height / 6); const x = c.getContext("2d");
+    const g = x.createLinearGradient(0, 0, 0, c.height); g.addColorStop(0, "#a9cbe6"); g.addColorStop(.62, "#f3d9bd"); g.addColorStop(1, "#c9a27c"); x.fillStyle = g; x.fillRect(0, 0, c.width, c.height); x.drawImage(f, 0, 0, c.width, c.height);
+    const o = $("oMini"); o.style.padding = "0"; i.style.background = `url(${c.toDataURL("image/jpeg", .8)}) center/100% 100%`; }
+  $("flip180").onclick = () => { rotSign = -rotSign; manualRot = true; };   // the frame (and the view) 180°
+  $("rotPic").onclick = () => { vidAdj = (vidAdj + 1) % 4; D("picture turn +" + vidAdj * 90 + "°"); };   // only the camera picture, 90° per tap   // no motion sensor: the guest turns it by hand
+
+  // ---------- capture → review (move / pinch inside the magnet) ----------
+  let raw = null, crop = { z: 1, cx: .5, cy: .5 };
+  function capture() {   // the full-resolution picture, upright and mirrored exactly as it was seen
+    const rot = rotated(), vw = video.videoWidth, vh = video.videoHeight, q = vidTurn(rot), c = document.createElement("canvas");
+    c.width = q % 2 ? vh : vw; c.height = q % 2 ? vw : vh; const x = c.getContext("2d");
+    x.translate(c.width / 2, c.height / 2); if (facing === "user") x.scale(-1, 1); if (q) x.rotate(q * Math.PI / 2); x.drawImage(video, -vw / 2, -vh / 2); return c;
+  }
+  function fit(W, H) {   // the photo always covers the whole magnet: zoom from 100% up, move as far as the photo goes
+    crop.z = Math.max(1, crop.z); const s = Math.max(W / raw.width, H / raw.height) * crop.z, hx = W / (2 * raw.width * s), hy = H / (2 * raw.height * s);
+    crop.cx = Math.min(1 - hx, Math.max(hx, crop.cx)); crop.cy = Math.min(1 - hy, Math.max(hy, crop.cy)); return s;
+  }
+  let blurC = null, blurOf = null;
+  function softBg(x, W, H) {   // a blurred copy of the photo behind it – no white holes when the photo is moved / made smaller
+    if (blurOf !== raw) { blurOf = raw; blurC = document.createElement("canvas"); const k = 28 / Math.max(raw.width, raw.height); blurC.width = Math.max(2, Math.round(raw.width * k)); blurC.height = Math.max(2, Math.round(raw.height * k)); blurC.getContext("2d").drawImage(raw, 0, 0, blurC.width, blurC.height); }
+    const s = Math.max(W / blurC.width, H / blurC.height) * 1.15; x.save(); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = "high";
+    x.drawImage(blurC, (W - blurC.width * s) / 2, (H - blurC.height * s) / 2, blurC.width * s, blurC.height * s); x.fillStyle = "rgba(255,255,255,.18)"; x.fillRect(0, 0, W, H); x.restore();
+  }
+  function compose(x, W, H) {
+    const s = fit(W, H); x.fillStyle = "#fff"; x.fillRect(0, 0, W, H);
+    x.drawImage(raw, W / 2 - crop.cx * raw.width * s, H / 2 - crop.cy * raw.height * s, raw.width * s, raw.height * s);
+    const f = frames[orient]; if (f) x.drawImage(f, 0, 0, W, H); else plainFrame(x, { x: 0, y: 0, w: W, h: H });
+  }
+  function editDraw() {
+    const c = $("editC"), dpr = window.devicePixelRatio || 1, f = frames[orient], ar = f ? f.width / f.height : ASPECT[orient];
+    const box = $("edit").getBoundingClientRect(), maxW = Math.min(box.width || innerWidth - 24, 640), maxH = Math.max(160, (box.height || innerHeight * .66) - 4); let w = maxW, h = w / ar; if (h > maxH) { h = maxH; w = h * ar; }
+    c.style.width = Math.round(w) + "px"; c.style.height = Math.round(h) + "px"; c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
+    compose(c.getContext("2d"), c.width, c.height);
+  }
+  function review(src, z) { stopCam(); raw = src; crop = { z: z || 1, cx: .5, cy: .5 }; $("review").classList.toggle("land", orient === "landscape"); show("review"); requestAnimationFrame(editDraw); }
+  { const pts = new Map(); let st = null; const el = $("editC");
+    const snap = () => ({ pts: [...pts.values()].map(p => [p.clientX, p.clientY]), z: crop.z, cx: crop.cx, cy: crop.cy });
+    el.addEventListener("touchmove", e => e.preventDefault(), { passive: false });   // iPhone: the page must not scroll / zoom while moving the photo
+    el.addEventListener("pointerdown", e => { e.preventDefault(); try { el.setPointerCapture(e.pointerId); } catch (_) { } pts.set(e.pointerId, e); st = snap(); });
+    el.addEventListener("pointermove", e => {
+      if (!pts.has(e.pointerId) || !st) return; pts.set(e.pointerId, e); const now = [...pts.values()].map(p => [p.clientX, p.clientY]);
+      const W = el.clientWidth, H = el.clientHeight, s0 = Math.max(W / raw.width, H / raw.height);
+      if (now.length >= 2 && st.pts.length >= 2) {
+        const d = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]); crop.z = Math.max(1, Math.min(5, st.z * d(now[0], now[1]) / Math.max(10, d(st.pts[0], st.pts[1]))));
+        const m0 = [(st.pts[0][0] + st.pts[1][0]) / 2, (st.pts[0][1] + st.pts[1][1]) / 2], m1 = [(now[0][0] + now[1][0]) / 2, (now[0][1] + now[1][1]) / 2], s = s0 * crop.z;
+        crop.cx = st.cx - (m1[0] - m0[0]) / (raw.width * s); crop.cy = st.cy - (m1[1] - m0[1]) / (raw.height * s);
+      } else if (now.length === 1) { const s = s0 * crop.z; crop.cx = st.cx - (now[0][0] - st.pts[0][0]) / (raw.width * s); crop.cy = st.cy - (now[0][1] - st.pts[0][1]) / (raw.height * s); }
+      editDraw();
+    });
+    const up = e => { pts.delete(e.pointerId); st = pts.size ? snap() : null; }; el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
+    el.addEventListener("wheel", e => { e.preventDefault(); crop.z = Math.max(1, Math.min(5, crop.z * (e.deltaY < 0 ? 1.08 : 1 / 1.08))); editDraw(); }, { passive: false }); }
+  addEventListener("resize", () => { if (!$("review").hidden) editDraw(); });
+
+  // ---------- buttons ----------
+  // rotation lock: Android lets a page lock the screen (in full screen – the browser bars go away too); iPhone does not
+  // allow it to any website, so there the guest gets a one-time tip to lock rotation in the Control Centre.
+  const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(ua));
+  async function lockPortrait() {
+    if (isIOS) return false;
+    try {
+      const el = document.documentElement;
+      if (!document.fullscreenElement && el.requestFullscreen) await el.requestFullscreen({ navigationUI: "hide" });
+      if (screen.orientation && screen.orientation.lock) { await screen.orientation.lock("portrait"); D("rotation: locked (portrait)"); return true; }
+    } catch (e) { D("rotation lock: " + (e.name || e)); }
+    return false;
+  }
+  function unlock() { try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (_) { } try { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen(); } catch (_) { } }
+  let tipShown = false; try { tipShown = !!localStorage.getItem("mxpk_rotTip"); } catch (_) { }
+  addEventListener("resize", () => {
+    if (!isIOS || tipShown || $("cam").hidden || innerWidth <= innerHeight) return;
+    tipShown = true; try { localStorage.setItem("mxpk_rotTip", "1"); } catch (_) { }
+    const h = $("rotHint"); h.querySelector("span").textContent = "טיפ: נעלו את סיבוב המסך (מרכז הבקרה 🔒) – ולחצו \"לרוחב\". המסגרת תסתובב לבד והמסך יישאר נקי";
+    h.hidden = false; h.style.opacity = 1; setTimeout(() => { h.style.opacity = 0; setTimeout(() => { h.hidden = true; h.querySelector("span").textContent = "סובבו את הטלפון לרוחב"; }, 400); }, 5200);
+  });
+  $("go").onclick = async () => {
+    if ($("go").disabled) return; lockPortrait(); setOrient(innerWidth > innerHeight ? "landscape" : orient); show("cam"); loop();
+    try { await openCam(); }
+    catch (e) { D("camera error: " + (e.name || "") + " " + (e.message || e)); stopCam(); show("start"); $("file").click(); }
+  };
+  $("close").onclick = () => { stopCam(); unlock(); show("start"); };
+  $("flip").onclick = async () => { facing = facing === "user" ? "environment" : "user"; try { await openCam(); } catch (e) { D("flip error: " + e.name); } };
+  $("flashB").onclick = () => { flashOn = !flashOn; flashUI(); };
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  $("snap").onclick = async () => {
+    if (busy || !video || !video.videoWidth) return; busy = true;
+    const fl = $("flash"); let c;
+    if (flashOn && facing === "environment" && torch) {   // the back camera's own light
+      try { await track.applyConstraints({ advanced: [{ torch: true }] }); await wait(450); } catch (_) { }
+      c = capture(); try { await track.applyConstraints({ advanced: [{ torch: false }] }); } catch (_) { }
+      fl.style.transition = "none"; fl.style.opacity = .8; requestAnimationFrame(() => { fl.style.transition = "opacity .35s"; fl.style.opacity = 0; });
+    } else if (flashOn) {   // selfie: the screen itself lights the face (white screen, then the picture)
+      fl.style.transition = "none"; fl.style.opacity = 1; await wait(380); c = capture(); await wait(60);
+      fl.style.transition = "opacity .35s"; fl.style.opacity = 0;
+    } else {
+      c = capture(); fl.style.transition = "none"; fl.style.opacity = .7; requestAnimationFrame(() => { fl.style.transition = "opacity .35s"; fl.style.opacity = 0; });
+    }
+    const z = digital(); busy = false; review(c, z);
+  };
+  const fromFile = inp => inp.onchange = () => { const f = inp.files[0]; inp.value = ""; if (!f) return; const im = new Image(); im.onload = () => { const c = document.createElement("canvas"); c.width = im.naturalWidth; c.height = im.naturalHeight; c.getContext("2d").drawImage(im, 0, 0); URL.revokeObjectURL(im.src); if ($("cam").hidden) setOrient(c.width > c.height ? "landscape" : "portrait"); review(c, 1); }; im.src = URL.createObjectURL(f); };
+  fromFile($("file"));   // only the camera's own fallback – guests cannot pick an old picture from the gallery
+  $("again").onclick = () => $("go").onclick();
+  $("ok").onclick = async () => {
+    const b = $("ok"); if (b.disabled) return; b.disabled = true; b.textContent = "שולח…";
+    const f = frames[orient], W = f ? f.width : (orient === "landscape" ? 1200 : 900), H = f ? f.height : Math.round(W / ASPECT[orient]);
+    const c = document.createElement("canvas"); c.width = W; c.height = H; compose(c.getContext("2d"), W, H); const img = c.toDataURL("image/jpeg", .92);
+    try {
+      const r = await (RELAY   // text/plain = no CORS preflight (Google scripts)
+        ? fetch(RELAY + "?a=pksend", { method: "POST", credentials: "omit", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ code, img, orient }) })
+        : fetch("/camtest/send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code, img, orient }) })).then(x => x.json());
+      if (r.used != null) me.used = r.used; if (r.quota != null) me.quota = r.quota;
+      if (r.ok) { $("sentT").textContent = "המגנט שלכם בדרך!"; $("sentX").textContent = "גשו לעמדת המגנטים – הוא יוצא שם בקרוב."; $("sentImg").src = img; $("sentImg").hidden = false; }
+      else { $("sentT").textContent = r.error === "quota" || r.error === "blocked" ? "נגמרו המגנטים שלכם" : r.error === "closed" ? "Pocket סגור כרגע" : "השליחה לא הצליחה"; $("sentX").textContent = r.error === "quota" ? "רוצים עוד? פנו לצלם עם הקוד שלכם." : "נסו שוב בעוד רגע."; $("sentImg").hidden = true; }
+      $("sentQ").textContent = meTxt(); $("quota").textContent = meTxt(); gate();
+      $("restart").hidden = !(me.quota - me.used > 0 && r.error !== "closed"); show("sent");
+    } catch (e) { alert(RELAY ? "אין חיבור – בדקו שיש אינטרנט בטלפון ונסו שוב" : "אין חיבור למחשב של העמדה – בדקו שאתם על אותה רשת WiFi"); }
+    b.disabled = false; b.textContent = "✓ שלחו להדפסה";
+  };
+  $("restart").onclick = () => $("go").onclick();
+})();
+</script>
+</body>
+</html>
