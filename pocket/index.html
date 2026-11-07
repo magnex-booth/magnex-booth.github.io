@@ -183,7 +183,7 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
     else { g.disabled = false; g.textContent = "📸 פתחו מצלמה"; }
   }
   setInterval(() => { if (!$("start").hidden && !document.hidden) meLoad(); }, 5000);   // opened / closed at the stand → the phone follows without a reload
-  const PAGE_V = "85";
+  const PAGE_V = "86";
   const diag = []; const D = t => { diag.push(t); $("diag").textContent = diag.join("\n"); };
   const ua = navigator.userAgent || "", inApp = /FBAN|FBAV|Instagram|Line\/|WhatsApp|Snapchat|TikTok|MicroMessenger/i.test(ua);
   D("Pocket camera " + PAGE_V); D("secure: " + (window.isSecureContext ? "yes" : "NO") + " · getUserMedia: " + (navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? "yes" : "NO") + " · in-app: " + (inApp ? "yes" : "no"));
@@ -200,6 +200,14 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
     if (cfg.theme === "pop") ["go", "ok"].forEach(id => { $(id).style.border = "3px solid #111"; $(id).style.boxShadow = "5px 5px 0 #111"; });
     if (cfg.name) { $("evName").textContent = cfg.name; document.title = cfg.name + " · MAGNEX Pocket"; }
     if (cfg.sub) { $("evSub").textContent = cfg.sub; $("evSub").hidden = false; }
+    if (cfg.sub2 && !$("evSub2")) { const p3 = document.createElement("p"); p3.className = "ev2"; p3.id = "evSub2"; $("evSub").after(p3); }   // v86: a third line
+    if ($("evSub2")) { $("evSub2").textContent = cfg.sub2 || ""; $("evSub2").hidden = !cfg.sub2; }
+    if (cfg.tl && Array.isArray(cfg.tl.f)) {   // v86: each line in its own font + size (from MAGNEX → Pocket → event setup)
+      const F = n => cfg.tl.f[n - 1] || (n > 1 ? cfg.tl.f[0] : ""), Z = n => +(cfg.tl.z || [])[n - 1] || (n > 1 ? +(cfg.tl.z || [])[0] || 1 : 1), seen = {};
+      [["evName", 1], ["evSub", 2], ["evSub2", 3]].forEach(([id, n]) => { const e = $(id); if (!e) return; const ff = String(F(n) || ""), k = Math.max(0.5, Math.min(2, Z(n))), fam = (ff.match(/^\s*["']?([^"',]+)/) || [])[1];
+        if (fam && !seen[fam] && !/^(Heebo|Arial|sans-serif|serif)$/i.test(fam.trim())) { seen[fam] = 1; const l = document.createElement("link"); l.rel = "stylesheet"; l.href = "https://fonts.googleapis.com/css2?family=" + encodeURIComponent(fam.trim()).replace(/%20/g, "+") + "&display=swap"; document.head.appendChild(l); }
+        if (ff) e.style.setProperty("font-family", ff, "important"); e.style.fontSize = ""; if (k !== 1) e.style.fontSize = `calc(${getComputedStyle(e).fontSize} * ${k})`; });
+    }
     if (cfg.logo) document.querySelectorAll(".lg").forEach(i => { i.src = cfg.logo; i.hidden = false; });
     const wm = (dark, sel, txt) => { const src = dark ? cfg.wmLight : cfg.wmDark; /* "light" = light letters, for a dark background */ if (!src) return; document.querySelectorAll(sel).forEach(i => { i.src = src; i.hidden = false; }); document.querySelectorAll(txt).forEach(t => t.hidden = true); };
     wm(T.dark, ".wmImg", ".wmTxt"); wm(T.dark, ".wmImgCam", ".wmTxtCam");   // the real MAGNEX wordmark (its colours), light/dark version by the design
