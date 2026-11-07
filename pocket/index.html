@@ -89,9 +89,13 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
   #review .rvBtns{flex-direction:column;justify-content:center;width:150px;flex:none}
   #review .rvBtns .btn{flex:none;font-size:16px;padding:14px 8px}
 }
+/* until the event's design arrives (the Google script needs a few seconds the first time): only a spinner, no default page */
+body.ld #start>*{visibility:hidden}
+body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;border:6px solid color-mix(in srgb,var(--fg) 15%,transparent);border-top-color:var(--acc);animation:ldsp 1s linear infinite}
+@keyframes ldsp{to{transform:rotate(360deg)}}
 </style>
 </head>
-<body>
+<body class="ld">
 <section class="scr page" id="start">
   <div class="brand"><img class="ic lg" alt="" hidden><div class="wmw"><img class="wmi wmImg" alt="MAGNEX" hidden><span class="wmt wmTxt">MAGNEX</span><span class="pk">Pocket</span></div></div>
   <div class="quota" id="quota">&nbsp;</div>
@@ -179,7 +183,7 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
     else { g.disabled = false; g.textContent = "📸 פתחו מצלמה"; }
   }
   setInterval(() => { if (!$("start").hidden && !document.hidden) meLoad(); }, 5000);   // opened / closed at the stand → the phone follows without a reload
-  const PAGE_V = "82";
+  const PAGE_V = "83";
   const diag = []; const D = t => { diag.push(t); $("diag").textContent = diag.join("\n"); };
   const ua = navigator.userAgent || "", inApp = /FBAN|FBAV|Instagram|Line\/|WhatsApp|Snapchat|TikTok|MicroMessenger/i.test(ua);
   D("Pocket camera " + PAGE_V); D("secure: " + (window.isSecureContext ? "yes" : "NO") + " · getUserMedia: " + (navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? "yes" : "NO") + " · in-app: " + (inApp ? "yes" : "no"));
@@ -209,7 +213,12 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
     const g = x.createLinearGradient(0, 0, 0, c.height); g.addColorStop(0, "#a9cbe6"); g.addColorStop(.62, "#f3d9bd"); g.addColorStop(1, "#c9a27c"); x.fillStyle = g; x.fillRect(0, 0, c.width, c.height);
     x.drawImage(f, 0, 0); $("hero").src = c.toDataURL("image/jpeg", .85); $("hero").hidden = false;
   }
-  getJ(RELAY ? RELAY + "?a=pkpage" : "/camtest/cfg").then(j => { cfg = j || {}; if (RELAY && !j.ok) { me.open = false; D("cloud: " + (j.msg || "off")); } D("frame from MAGNEX: " + (cfg.frameP && cfg.frameP.frame ? "yes" : "no")); applyCfg(); }).catch(() => { D("cfg: none"); applyCfg(); });
+  // the last design this phone saw is shown at once (same event = same look); the fresh one replaces it a moment later
+  const ready = () => document.body.classList.remove("ld"); setTimeout(ready, 9000);
+  const CK = "mxpk_cfg_" + (RELAY || "local");
+  setTimeout(() => { try { const c0 = JSON.parse(localStorage.getItem(CK) || "null"); if (c0 && c0.name !== undefined && !cfg.name) { cfg = c0; applyCfg(); ready(); D("design: saved copy"); } } catch (e) { D("saved design: " + e); } }, 0);   // after the whole script (flashUI…) is defined
+  getJ(RELAY ? RELAY + "?a=pkpage" : "/camtest/cfg").then(j => { cfg = j || {}; if (RELAY && !j.ok) { me.open = false; D("cloud: " + (j.msg || "off")); } else { try { localStorage.setItem(CK, JSON.stringify(cfg)); } catch (_) { } }
+    D("frame from MAGNEX: " + (cfg.frameP && cfg.frameP.frame ? "yes" : "no")); applyCfg(); ready(); }).catch(() => { D("cfg: none"); applyCfg(); ready(); });
 
   // ---------- camera ----------
   let flashOn = true;   // flash on every picture (MAGNEX can turn the default off)
