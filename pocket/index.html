@@ -46,9 +46,9 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
 .zooms{align-self:center;display:flex;gap:6px;background:rgba(0,0,0,.35);border-radius:99px;padding:4px}
 .zooms button{min-width:40px;height:34px;border-radius:99px;border:0;background:none;color:#fff;font-weight:800;font-size:13px;padding:0 8px}
 .zooms button.on{background:rgba(255,255,255,.92);color:#111}
-.crow{display:flex;align-items:center;justify-content:space-between}
+.crow{display:flex;align-items:center;justify-content:space-between;direction:ltr}   /* the switch on the left, the shutter on the right (a right-hand selfie) */
 /* one big switch (portrait ⇄ landscape) on the right, the shutter on the left */
-.otog{flex:1;margin-inline-end:16px;height:96px;border-radius:26px;border:2px solid var(--acc);background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 24%,transparent),rgba(255,138,61,.12));color:var(--camFg);display:flex;align-items:center;gap:14px;padding:0 14px;box-shadow:0 0 22px color-mix(in srgb,var(--acc) 40%,transparent);text-align:start}
+.otog{direction:rtl;flex:1;margin-right:16px;height:96px;border-radius:26px;border:2px solid var(--acc);background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 24%,transparent),rgba(255,138,61,.12));color:var(--camFg);display:flex;align-items:center;gap:14px;padding:0 14px;box-shadow:0 0 22px color-mix(in srgb,var(--acc) 40%,transparent);text-align:start}
 .otog:active{transform:scale(.98)}
 .omini{flex:none;width:70px;height:52px;background:#fff;padding:5px 5px 12px;box-shadow:0 6px 14px rgba(0,0,0,.4);transform:rotate(-6deg);display:block}
 .omini i{display:block;width:100%;height:100%;background:linear-gradient(180deg,#a9cbe6,#f3d9bd 62%,#c9a27c) center/cover}
@@ -179,7 +179,7 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
     else { g.disabled = false; g.textContent = "📸 פתחו מצלמה"; }
   }
   setInterval(() => { if (!$("start").hidden && !document.hidden) meLoad(); }, 5000);   // opened / closed at the stand → the phone follows without a reload
-  const PAGE_V = "81";
+  const PAGE_V = "82";
   const diag = []; const D = t => { diag.push(t); $("diag").textContent = diag.join("\n"); };
   const ua = navigator.userAgent || "", inApp = /FBAN|FBAV|Instagram|Line\/|WhatsApp|Snapchat|TikTok|MicroMessenger/i.test(ua);
   D("Pocket camera " + PAGE_V); D("secure: " + (window.isSecureContext ? "yes" : "NO") + " · getUserMedia: " + (navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? "yes" : "NO") + " · in-app: " + (inApp ? "yes" : "no"));
