@@ -169,7 +169,7 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
   let me = { used: 0, quota: 4, open: true, blocked: false };
   const meTxt = () => `נשארו ${Math.max(0, me.quota - me.used)} מתוך ${me.quota} מגנטים`;
   let pv0 = null;   // the page's version on the computer – after a MAGNEX update the phone reloads by itself (only on the start screen)
-  const meLoad = () => getJ(RELAY ? RELAY + "?a=pkme&c=" + code : "/camtest/me?code=" + code).then(j => {
+  const meLoad = () => getJ(RELAY ? RELAY + "?a=pkme&code=" + code : "/camtest/me?code=" + code).then(j => {
     if (j.pv) { if (pv0 === null) { pv0 = j.pv; D("page: " + new Date(j.pv * 1000).toLocaleString("he-IL")); } else if (j.pv !== pv0 && !$("start").hidden) { location.reload(); return; } }
     me = j; $("quota").textContent = meTxt(); gate(); }).catch(() => { });
   function gate() {
@@ -179,7 +179,7 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
     else { g.disabled = false; g.textContent = "📸 פתחו מצלמה"; }
   }
   setInterval(() => { if (!$("start").hidden && !document.hidden) meLoad(); }, 5000);   // opened / closed at the stand → the phone follows without a reload
-  const PAGE_V = "78";
+  const PAGE_V = "79";
   const diag = []; const D = t => { diag.push(t); $("diag").textContent = diag.join("\n"); };
   const ua = navigator.userAgent || "", inApp = /FBAN|FBAV|Instagram|Line\/|WhatsApp|Snapchat|TikTok|MicroMessenger/i.test(ua);
   D("Pocket camera " + PAGE_V); D("secure: " + (window.isSecureContext ? "yes" : "NO") + " · getUserMedia: " + (navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? "yes" : "NO") + " · in-app: " + (inApp ? "yes" : "no"));
