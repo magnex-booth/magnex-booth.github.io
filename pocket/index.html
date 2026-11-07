@@ -179,7 +179,7 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
     else { g.disabled = false; g.textContent = "📸 פתחו מצלמה"; }
   }
   setInterval(() => { if (!$("start").hidden && !document.hidden) meLoad(); }, 5000);   // opened / closed at the stand → the phone follows without a reload
-  const PAGE_V = "79";
+  const PAGE_V = "80";
   const diag = []; const D = t => { diag.push(t); $("diag").textContent = diag.join("\n"); };
   const ua = navigator.userAgent || "", inApp = /FBAN|FBAV|Instagram|Line\/|WhatsApp|Snapchat|TikTok|MicroMessenger/i.test(ua);
   D("Pocket camera " + PAGE_V); D("secure: " + (window.isSecureContext ? "yes" : "NO") + " · getUserMedia: " + (navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? "yes" : "NO") + " · in-app: " + (inApp ? "yes" : "no"));
@@ -244,7 +244,7 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
   // iPhone (Eran, build 72: ⟳ twice = right); a portrait stream is turned back by a quarter.
   // calibrated on Eran's iPhone (build 75): the stream stays portrait (1920x2560) when the phone is turned with rotation
   // lock on, and the picture is upright with a quarter turn in the SAME direction as the view (turn = dir).
-  function vidTurn(rot) { const vw = video.videoWidth, vh = video.videoHeight; let q = !rot ? 0 : vw < vh ? rotSign : 0; q = ((q + vidAdj) % 4 + 4) % 4; return q; }   // quarter turns
+  function vidTurn(rot) { const vw = video.videoWidth, vh = video.videoHeight; let q = !rot ? 0 : vw < vh ? (facing === "user" ? rotSign : -rotSign) : 0;   /* the selfie is mirrored, so the back camera turns the other way (Eran, build 79: back camera was upside down on iPhone + Android) */ q = ((q + vidAdj) % 4 + 4) % 4; return q; }   // quarter turns
   function drawSrc(x, r, z, rot) {
     const vw = video.videoWidth, vh = video.videoHeight, q = vidTurn(rot), sw = q % 2 ? vh : vw, sh = q % 2 ? vw : vh;
     const s = Math.max(r.w / sw, r.h / sh) * z;
