@@ -17,10 +17,18 @@ button{font:inherit;cursor:pointer}
 [hidden]{display:none!important}
 .scr{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center}
 .page{overflow:auto;padding:max(22px,env(safe-area-inset-top)) 20px max(24px,env(safe-area-inset-bottom));gap:14px;text-align:center}
-.brand{display:flex;flex-direction:column;align-items:center;line-height:1}
-.wm{font-weight:900;font-size:30px;letter-spacing:1px;direction:ltr}.wm .g{color:#3d7bff}.wm .x{color:#6cc94a}
-.bt{font-weight:900;font-size:17px;color:var(--acc);margin-top:2px}
-.brand.sm .wm{font-size:21px}.brand.sm .bt{font-size:13px}
+/* the brand: the photobooth's own icon + the real MAGNEX wordmark (its colours) + PHOTO BOOTH, as in the MAGNEX Booth logo */
+.brand{display:flex;align-items:center;gap:10px;direction:ltr;line-height:1}
+.brand .ic{width:74px;height:76px;object-fit:contain;flex:none}
+.brand .wmw{display:flex;flex-direction:column;align-items:center}
+.brand .wmi{height:29px;width:auto;display:block}   /* MAGNEX only (the wordmark without "print lazy") */
+.brand .bt{font-weight:800;font-size:15px;letter-spacing:3.5px;color:#22d3ee;margin-top:3px;text-shadow:0 0 10px rgba(34,211,238,.35)}
+.brand.sm .ic{width:48px;height:50px}.brand.sm .wmi{height:19px}.brand.sm .bt{font-size:10.5px;letter-spacing:2.4px}
+/* moving colourful dots behind the pages – like the photobooth's own screens */
+#bgfx{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+#bgfx i{position:absolute;top:-4vh;left:var(--l);width:var(--s);height:var(--s);border-radius:var(--r);background:var(--c);opacity:0;will-change:transform,opacity;animation:fall var(--d) linear var(--delay) infinite}
+@keyframes fall{0%{transform:translateY(0) rotate(0);opacity:0}10%{opacity:var(--o)}90%{opacity:var(--o)}100%{transform:translateY(112vh) rotate(540deg);opacity:0}}
+.scr{z-index:1}
 h1{margin:0;font-size:30px;font-weight:900;line-height:1.12}
 .ev2{margin:0;font-size:15px;opacity:.75}
 .sub{color:var(--muted);font-size:16px;line-height:1.5;margin:0;max-width:440px}
@@ -40,9 +48,9 @@ h1{margin:0;font-size:30px;font-weight:900;line-height:1.12}
 .zooms{align-self:center;display:flex;gap:6px;background:rgba(0,0,0,.35);border-radius:99px;padding:4px;direction:ltr}
 .zooms button{min-width:40px;height:34px;border-radius:99px;border:0;background:none;color:#fff;font-weight:800;font-size:13px;padding:0 8px}
 .zooms button.on{background:rgba(255,255,255,.92);color:#111}
-.crow{display:flex;align-items:center;gap:14px;direction:ltr}   /* the progress card on the left, the shutter on the right (a right-hand selfie) */
-.prog{flex:1;height:92px;border-radius:26px;border:2px solid var(--acc);background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 22%,transparent),rgba(255,138,61,.1));display:flex;align-items:center;justify-content:center;gap:8px;padding:0 10px;direction:ltr;color:var(--camFg)}
-.prog .th{width:48px;height:36px;border:2px dashed color-mix(in srgb,var(--camFg) 35%,transparent);border-radius:4px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;opacity:.75;background:center/cover no-repeat}
+.crow{display:flex;align-items:center;justify-content:center;direction:ltr}   /* the shutter in the middle – one hand, either hand */
+.prog{position:absolute;left:50%;transform:translateX(-50%);z-index:2;display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:12px;background:rgba(0,0,0,.28);direction:ltr;color:var(--camFg)}
+.prog .th{width:40px;height:28px;border:2px dashed color-mix(in srgb,var(--camFg) 35%,transparent);border-radius:4px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;opacity:.75;background:center/cover no-repeat}
 .prog .th.done{border:2px solid #fff;opacity:1;color:transparent}
 .prog .th.cur{border-color:var(--acc);border-style:dashed;border-width:3px;opacity:1}
 .shutter{width:92px;height:92px;border-radius:50%;border:6px solid var(--camFg);background:transparent;padding:6px;flex:none}
@@ -70,10 +78,11 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
 </style>
 </head>
 <body>
+<div id="bgfx" aria-hidden="true"></div>
 <section class="scr page" id="loading"><div style="flex:1"></div><div class="spinner" role="img" aria-label="טוען"></div><div style="flex:1"></div></section>
 
 <section class="scr page" id="start" hidden>
-  <div class="brand"><div class="wm">MA<span class="g">G</span>NE<span class="x">X</span></div><div class="bt">Booth</div></div>
+  <div class="brand"><img class="ic" alt=""><div class="wmw"><img class="wmi" alt="MAGNEX"><span class="bt">PHOTO BOOTH</span></div></div>
   <div class="pill" id="nPill">🎞 סטריפ מהטלפון שלכם</div>
   <div><h1 id="evName">MAGNEX Booth</h1><p class="ev2" id="evSub" hidden></p></div>
   <img class="hero" id="hero" alt="" hidden>
@@ -87,20 +96,20 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
   <div class="ctop">
     <div style="display:flex;gap:8px"><button class="rbtn" id="close" type="button" aria-label="סגירה"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <button class="rbtn on" id="flashB" type="button" aria-label="פלאש" aria-pressed="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></button></div>
-    <div class="brand sm"><div class="wm" style="color:var(--camFg)">MA<span class="g">G</span>NE<span class="x">X</span></div><div class="bt">Booth</div></div>
+    <div class="brand sm"><img class="ic" alt=""><div class="wmw"><img class="wmi" alt="MAGNEX"><span class="bt">PHOTO BOOTH</span></div></div>
     <button class="rbtn" id="flip" type="button" aria-label="החלפת מצלמה"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9a8 8 0 0 1 14-3l2 2"/><path d="M20 4v4h-4"/><path d="M20 15a8 8 0 0 1-14 3l-2-2"/><path d="M4 20v-4h4"/></svg></button>
   </div>
+  <div class="prog" id="prog" aria-hidden="true"></div>
   <div id="stepPill">תמונה 1 מתוך 4</div>
   <div class="cbot">
-    <div class="zooms" id="zooms" role="group" aria-label="זום"></div>
-    <div class="crow"><div class="prog" id="prog" aria-hidden="true"></div><button class="shutter" id="snap" type="button" aria-label="צילום"><span></span></button></div>
+    <div class="crow"><button class="shutter" id="snap" type="button" aria-label="צילום"><span></span></button></div>
   </div>
   <div id="zoomLbl">1×</div>
   <div id="flash"></div>
 </section>
 
 <section class="scr" id="review" hidden>
-  <div class="rvTop"><div class="brand sm"><div class="wm">MA<span class="g">G</span>NE<span class="x">X</span></div><div class="bt">Booth</div></div><h1 class="rvT">אהבתם?</h1></div>
+  <div class="rvTop"><div class="brand sm"><img class="ic" alt=""><div class="wmw"><img class="wmi" alt="MAGNEX"><span class="bt">PHOTO BOOTH</span></div></div><h1 class="rvT">אהבתם?</h1></div>
   <div class="rvMid"><canvas id="stripC"></canvas><div class="again" id="again"></div></div>
   <p class="sub" style="font-size:13px">לא אהבתם תמונה אחת? לוחצים עליה – ומצלמים רק אותה</p>
   <div class="chips" id="filters" hidden></div>
@@ -110,7 +119,7 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
 <section class="scr page" id="sending" hidden><div style="flex:1"></div><div class="spinner"></div><p class="sub">שולחים להדפסה…</p><div style="flex:1"></div></section>
 
 <section class="scr page" id="done" hidden>
-  <div class="brand sm"><div class="wm">MA<span class="g">G</span>NE<span class="x">X</span></div><div class="bt">Booth</div></div>
+  <div class="brand sm"><img class="ic" alt=""><div class="wmw"><img class="wmi" alt="MAGNEX"><span class="bt">PHOTO BOOTH</span></div></div>
   <h1 style="margin-top:14px" id="doneT">הסטריפ בדרך! 🎉</h1>
   <p class="sub" id="doneX">גשו לעמדת הפוטובוט – הוא יוצא שם בעוד כמה שניות.</p>
   <img id="doneImg" alt="" style="height:min(44vh,360px);width:auto;box-shadow:0 16px 36px rgba(0,0,0,.45);transform:rotate(-4deg);margin:8px 0;background:#fff">
@@ -128,7 +137,10 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
   const show = id => ["loading", "start", "cam", "review", "sending", "done", "msg"].forEach(s => $(s).hidden = s !== id);
   const msg = (t, x, i) => { $("msgT").textContent = t; $("msgX").textContent = x || ""; $("msgI").textContent = i || "⚠️"; show("msg"); };
   const diag = []; const D = t => { diag.push(t); $("diag").textContent = diag.join("\n"); };
-  const PAGE_V = "2"; D("Booth strip page " + PAGE_V);
+  const PAGE_V = "3";
+  const BR_IC = "data:image/png;base64,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";   // the photobooth icon
+  const WM_DARK = "data:image/png;base64,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", WM_LIGHT = "data:image/png;base64,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";   // the MAGNEX wordmark: dark letters (light designs) / light letters (dark designs)
+  D("Booth strip page " + PAGE_V);
   // the 4 phone designs – the same as MAGNEX Pocket (the iPad picks one: settings → 📱 phone)
   const TH = {
     booth: { dark: true, bg: "#0b0912", fg: "#fff", muted: "#c3bcd2", line: "rgba(255,255,255,.16)", acc: "#ff4fd8", pri: "linear-gradient(135deg,#ff4fd8,#ff8a3d 60%,#ffd23d)", priFg: "#1a0d14", secBg: "rgba(255,255,255,.08)", secFg: "#fff", rad: "999px", camBg: "#0b0912", camFg: "#fff", camBtn: "rgba(255,255,255,.14)" },
@@ -159,6 +171,12 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
     const T = TH[CFG.phTheme] || TH.booth, st = document.documentElement.style;
     for (const k of ["bg", "fg", "muted", "line", "acc", "pri", "priFg", "secBg", "secFg", "rad", "camBg", "camFg", "camBtn"]) st.setProperty("--" + k, T[k]);
     document.querySelector('meta[name="theme-color"]').content = T.bg;
+    document.querySelectorAll(".wmi").forEach(i => i.src = T.dark ? WM_LIGHT : WM_DARK);
+    document.querySelectorAll(".brand .ic").forEach(i => i.src = BR_IC);
+    { const cols = ["#ff3d6e", "#ffd23d", "#3d7bff", "#2fb6a6", "#ff8a3d", T.acc]; let h = "";   // falling colourful dots, a little alive
+      for (let i = 0; i < 26; i++) { const sz = 6 + Math.random() * 7, dot = i % 3 !== 0;
+        h += `<i style="--l:${(Math.random() * 100).toFixed(1)}%;--s:${sz.toFixed(1)}px;--r:${dot ? "50%" : "2px"};--c:${cols[i % cols.length]};--o:${T.dark ? .75 : .6};--d:${(7 + Math.random() * 7).toFixed(1)}s;--delay:${(-Math.random() * 14).toFixed(1)}s"></i>`; }
+      $("bgfx").innerHTML = h; }
     if (CFG.phTheme === "pop") ["go", "send"].forEach(id => { $(id).style.border = "3px solid #111"; $(id).style.boxShadow = "5px 5px 0 #111"; });
     if (CFG.phTheme === "ivory") document.querySelectorAll("h1").forEach(h => { h.style.fontFamily = "'Frank Ruhl Libre',serif"; h.style.fontWeight = "400"; });
     const N = CFG.n === 3 ? 3 : 4, A = +CFG.saspect > 0.3 ? +CFG.saspect : 1.4;   // photos in the strip · one photo window (w/h)
@@ -206,7 +224,7 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
         x.save(); x.beginPath(); x.rect(r.x, r.y, r.w, r.h); x.clip(); x.translate(r.x + r.w / 2, r.y + r.h / 2); if (facing === "user") x.scale(-1, 1);
         x.drawImage(video, -vw * s / 2, -vh * s / 2, vw * s, vh * s); x.restore();
       }
-      const p = $("stepPill"); p.style.top = ((r.y + r.h + pad) / dpr + 12) + "px";
+      const yb = (r.y + r.h + pad) / dpr; $("prog").style.top = (yb + 10) + "px"; $("stepPill").style.top = (yb + 52) + "px";
       raf = requestAnimationFrame(loop);
     }
     async function openCam() {
@@ -217,21 +235,16 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
       if (!video) { video = document.createElement("video"); video.playsInline = true; video.muted = true; video.setAttribute("playsinline", ""); }
       video.srcObject = stream; await video.play();
       hw = null; torch = false; try { const cp = track.getCapabilities ? track.getCapabilities() : {}; if (cp.zoom && cp.zoom.max > cp.zoom.min) hw = { min: cp.zoom.min, max: cp.zoom.max }; torch = !!cp.torch; } catch (_) { }
-      zoom = 1; zoomUI(); if (hw) setZoom(Math.max(hw.min, Math.min(hw.max, 1)));
+      zoom = 1; if (hw) setZoom(Math.max(hw.min, Math.min(hw.max, 1)));
       D("camera: " + facing + " " + video.videoWidth + "×" + video.videoHeight + " · zoom " + (hw ? hw.min + "–" + hw.max : "digital") + " · torch " + (torch ? "yes" : "no"));
     }
     function stopCam() { cancelAnimationFrame(raf); if (stream) stream.getTracks().forEach(t => t.stop()); stream = null; track = null; }
     const zMin = () => hw ? Math.max(.5, hw.min) : 1, zMax = () => hw ? Math.min(5, hw.max) : 5;
-    function zoomUI() {
-      const opts = [.5, 1, 2, 5].filter(v => v >= zMin() - 1e-6 && v <= zMax() + 1e-6);
-      $("zooms").innerHTML = opts.map(v => `<button type="button" data-z="${v}" class="${Math.abs(v - zoom) < .05 ? "on" : ""}">${Math.abs(v - zoom) < .05 ? v + "×" : (v === .5 ? ".5" : v)}</button>`).join("");
-      $("zooms").querySelectorAll("button").forEach(b => b.onclick = () => setZoom(+b.dataset.z, true));
-    }
     let zT = 0;
     function setZoom(v, lbl) {
       zoom = Math.max(zMin(), Math.min(zMax(), v));
       if (hw && track) { try { track.applyConstraints({ advanced: [{ zoom }] }); } catch (_) { } }
-      zoomUI(); if (lbl) { const l = $("zoomLbl"); l.textContent = (Math.round(zoom * 10) / 10) + "×"; l.style.opacity = 1; clearTimeout(zT); zT = setTimeout(() => l.style.opacity = 0, 700); }
+      if (lbl) { const l = $("zoomLbl"); l.textContent = (Math.round(zoom * 10) / 10) + "×"; l.style.opacity = 1; clearTimeout(zT); zT = setTimeout(() => l.style.opacity = 0, 700); }
     }
     { const pts = new Map(); let d0 = 0, z0 = 1; const cv = $("view");   // pinch on the live view
       cv.addEventListener("pointerdown", e => { pts.set(e.pointerId, e); if (pts.size === 2) { const [a, b] = [...pts.values()]; d0 = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY); z0 = zoom; } });
