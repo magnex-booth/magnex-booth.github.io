@@ -108,7 +108,9 @@ function relayFromHash() {
   if (!RELAY) return msg("הקוד לא שלם", "סרקו שוב את הקוד שעל מסך העמדה.");
   fetch(RELAY + "?a=page", { credentials: "omit", cache: "no-store" }).then(function (r) { return r.json(); }).then(function (j) {
     if (!j || !j.ok) return msg("הצילום מהטלפון כבוי כרגע", (j && j.msg) || "העמדה לא פעילה עכשיו. נסו שוב כשהיא דולקת 🙂", "📸");
-    CFG = j.cfg || {}; TOKEN = j.token; boot();
+    CFG = j.cfg || {}; TOKEN = j.token;
+    if (CFG.mode === "strip" && /^https?:$/.test(location.protocol) && !/script\.google/.test(location.hostname)) { location.replace("strip.html" + location.hash); return; }   // MAGNEX 2.50 b86+: the strip page (same QR)
+    boot();
   }).catch(function () { msg("אין חיבור לעמדה", "בדקו שיש אינטרנט בטלפון וסרקו שוב.", "📶"); });
 })();
 function boot() {
