@@ -106,6 +106,7 @@ function relayFromHash() {
   if (raw.indexOf("__CF" + "G__") < 0) { try { CFG = JSON.parse(raw); } catch (e) {} if (CFG) return boot(); }
   RELAY = relayFromHash();
   if (!RELAY) return msg("הקוד לא שלם", "סרקו שוב את הקוד שעל מסך העמדה.");
+  try { if (/^https?:$/.test(location.protocol) && !/script\.google/.test(location.hostname) && localStorage.getItem("mxb_strip") === location.hash) { location.replace("strip.html" + location.hash); return; } } catch (e) {}   // this stand was on strips last time: straight to the strip page (no second wait)
   fetch(RELAY + "?a=page", { credentials: "omit", cache: "no-store" }).then(function (r) { return r.json(); }).then(function (j) {
     if (!j || !j.ok) return msg("הצילום מהטלפון כבוי כרגע", (j && j.msg) || "העמדה לא פעילה עכשיו. נסו שוב כשהיא דולקת 🙂", "📸");
     CFG = j.cfg || {}; TOKEN = j.token;
