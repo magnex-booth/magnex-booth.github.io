@@ -90,7 +90,7 @@ textarea{min-height:70px;resize:vertical}
 const HP = new URLSearchParams(location.hash.slice(1));
 const K = HP.get("k") || "";
 const RELAY = "https://script.google.com/macros/s/" + (HP.get("s") || "AKfycbyujhq_7QMAJE6q6yaFFaqi95uG-7qKKTlUnmiRM5PSg8-4-Wktc21x67JOp7MvNMii") + "/exec";
-const PN = { magnex: "MAGNEX", booth: "פוטובוט (תוסף)", "booth-solo": "פוטובוט סטיישן", darkroom: "חדר חושך (תוסף)", pocket: "Pocket MAGNEX (תוסף)", owner: "הכול (בעלים)", "?": "רישיון" };
+const PN = { magnex: "MAGNEX", booth: "MAGNEX Booth (תוסף)", "booth-solo": "MAGNEX Booth Station", darkroom: "MAGNEX Lab (תוסף)", pocket: "MAGNEX Pocket (תוסף)", owner: "הכול (בעלים)", "?": "רישיון" };
 const PAYN = { bit: "ביט", paybox: "פייבוקס", bank: "העברה בנקאית", other: "אחר" };
 const ALLP = ["magnex", "booth", "booth-solo", "darkroom", "pocket"];
 let PANEL = {}, PF = {};   // the open action panel per computer code + what was typed in it
@@ -260,8 +260,8 @@ function render() {
   }).join("") : `<div class="empty">${S ? "לא נמצא" : ""}</div>`;
   const T = (S?.trials || []);
   $("#tH").hidden = !T.length; $("#tH").textContent = `🕒 בתקופת ניסיון · ${T.length}`;
-  $("#trial").innerHTML = T.map(t => `<div class="card"><div class="row"><span class="nm" style="flex:1">${esc(t.name || (t.app === "booth-solo" ? "פוטובוט סטיישן" : "MAGNEX"))}</span><span class="pc ${t.st === "trial" ? "wait" : "rv"}">${t.st === "trial" ? `🕒 נותרו ${t.days} ימים` : "הניסיון נגמר"}</span></div>
-    <div class="code">${esc(t.code)}</div><div class="mut">${t.app === "booth-solo" ? "פוטובוט סטיישן" : "MAGNEX"} ${esc(t.ver)} · הותקן ${new Date(t.first).toLocaleDateString("he-IL")} · נראה ${ago(t.last)}</div>${contact(t.phone, t.email)}
+  $("#trial").innerHTML = T.map(t => `<div class="card"><div class="row"><span class="nm" style="flex:1">${esc(t.name || (t.app === "booth-solo" ? "MAGNEX Booth Station" : "MAGNEX"))}</span><span class="pc ${t.st === "trial" ? "wait" : "rv"}">${t.st === "trial" ? `🕒 נותרו ${t.days} ימים` : "הניסיון נגמר"}</span></div>
+    <div class="code">${esc(t.code)}</div><div class="mut">${t.app === "booth-solo" ? "MAGNEX Booth Station" : "MAGNEX"} ${esc(t.ver)} · הותקן ${new Date(t.first).toLocaleDateString("he-IL")} · נראה ${ago(t.last)}</div>${contact(t.phone, t.email)}
     ${(() => { const l = cmdFor(x => x.body?.code === t.code && Date.now() - x.t < 600000); return l ? stLine(l) : ""; })()}
     <div class="acts"><button class="sm ext" data-c="${esc(t.code)}" data-n="${esc(t.name || "")}" data-l="${t.st === "trial" ? +t.days || 0 : 0}">➕ עוד 14 יום ניסיון</button><button class="sm opn" data-c="${esc(t.code)}" data-k="addprod">💳 הפעל – שילם</button><button class="sm opn" data-c="${esc(t.code)}" data-k="gift">🎁 הפעל במתנה</button><button class="sm ghost fgt" data-c="${esc(t.code)}">🙈 הסתר</button></div>
     ${panel(t.code, t.name || "", [], t)}</div>`).join("");
