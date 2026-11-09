@@ -90,7 +90,7 @@ textarea{min-height:70px;resize:vertical}
 const HP = new URLSearchParams(location.hash.slice(1));
 const K = HP.get("k") || "";
 const RELAY = "https://script.google.com/macros/s/" + (HP.get("s") || "AKfycbyujhq_7QMAJE6q6yaFFaqi95uG-7qKKTlUnmiRM5PSg8-4-Wktc21x67JOp7MvNMii") + "/exec";
-const PN = { magnex: "MAGNEX", booth: "פוטובוט (תוסף)", "booth-solo": "פוטובוט עצמאי", darkroom: "חדר חושך (תוסף)", pocket: "Pocket MAGNEX (תוסף)", owner: "הכול (בעלים)", "?": "רישיון" };
+const PN = { magnex: "MAGNEX", booth: "פוטובוט (תוסף)", "booth-solo": "פוטובוט סטיישן", darkroom: "חדר חושך (תוסף)", pocket: "Pocket MAGNEX (תוסף)", owner: "הכול (בעלים)", "?": "רישיון" };
 const PAYN = { bit: "ביט", paybox: "פייבוקס", bank: "העברה בנקאית", other: "אחר" };
 const ALLP = ["magnex", "booth", "booth-solo", "darkroom", "pocket"];
 let PANEL = {}, PF = {};   // the open action panel per computer code + what was typed in it
@@ -161,7 +161,7 @@ function panel(code, name, have, c) {
   const k = PANEL[code]; if (!k) return "";
   const f = PF[code] || (PF[code] = { prods: [], amount: "", method: "bit", msg: `היי ${String(name || "").trim().split(/\s+/)[0] || ""}, קיבלת מתנה מצוות MAGNEX 🎁 ותודה על האמון!`.replace("היי ,", "היי,"),
     name: name || "", phone: c?.phone || "", email: c?.email || "", notes: c?.notes || "" });
-  const pick = ALLP.filter(p => !have.includes(p)).map(p => `<label class="ck"><input type="checkbox" class="fp" value="${p}" ${f.prods.includes(p) ? "checked" : ""}>${PN[p]}</label>`).join("") || `<span class="mut">יש לו כבר את כל התוכנות</span>`;
+  const pick = ALLP.filter(p => !have.includes(p) && !(p === "booth-solo" && (have.includes("magnex") || have.includes("booth")))).map(p => `<label class="ck"><input type="checkbox" class="fp" value="${p}" ${f.prods.includes(p) ? "checked" : ""}>${PN[p]}</label>`).join("") || `<span class="mut">יש לו כבר את כל התוכנות</span>`;
   const nm = `<input type="text" class="fn" value="${esc(f.name)}" placeholder="שם הלקוח (יופיע ברישיון)">`;
   if (k === "addprod") return `<div class="pnl" data-c="${esc(code)}"><div class="ttl">➕ הוספת תוכנה בתשלום</div>${nm}<div class="chips">${pick}</div>
     <div class="g2"><input type="number" inputmode="decimal" class="fa" value="${esc(f.amount)}" placeholder="סכום ₪"><select class="fm">${Object.keys(PAYN).map(m => `<option value="${m}" ${f.method === m ? "selected" : ""}>${PAYN[m]}</option>`).join("")}</select></div>
@@ -247,11 +247,11 @@ function render() {
     const last = cmdFor(x => x.body?.code === c.code && x.a !== "approve" && x.a !== "reject" && Date.now() - x.t < 600000);
     const open = OPEN.has(c.code);
     return `<div class="card">
-      <div class="row"><span class="nm" style="flex:1">${esc(c.name || "—")}</span><button class="sm det-b" data-c="${esc(c.code)}">${open ? "▲ סגור" : "👤 פרטים"}</button></div>
-      <div class="code">${esc(c.code)}</div>
+      <div class="row det-b" data-c="${esc(c.code)}" style="cursor:pointer"><span class="nm" style="flex:1">${esc(c.name || "—")}</span><button class="sm">${open ? "▲ סגור" : "👤 פרטים"}</button></div>
+      ${open ? `<div class="code">${esc(c.code)}</div>
       <div class="chips">${chips}</div>${last ? stLine(last) : ""}
       ${actBar(c.code)}${panel(c.code, c.name, (c.items || []).map(x => x.p), c)}
-      ${open ? `<div class="det">${contact(c.phone, c.email) || `<div class="mut">אין טלפון או מייל שמורים</div>`}
+      <div class="det">${contact(c.phone, c.email) || `<div class="mut">אין טלפון או מייל שמורים</div>`}
         <div class="mut" style="margin:10px 0 4px">רכישות</div>
         ${(c.buys || []).map(b => `<div class="buy"><span class="mut">${esc(b.date)}</span><span style="flex:1">${(b.prods || []).map(p => PN[p] || p).join(" + ")}</span><b>${esc(b.amount)} ₪</b><span class="mut">${esc(PAYN[b.method] || "לא צוין")}</span></div>`).join("") || `<div class="mut">אין רכישות רשומות</div>`}
         ${c.notes ? `<div class="mut" style="margin-top:8px">הערות: ${esc(c.notes)}</div>` : ""}
@@ -260,12 +260,12 @@ function render() {
   }).join("") : `<div class="empty">${S ? "לא נמצא" : ""}</div>`;
   const T = (S?.trials || []);
   $("#tH").hidden = !T.length; $("#tH").textContent = `🕒 בתקופת ניסיון · ${T.length}`;
-  $("#trial").innerHTML = T.map(t => `<div class="card"><div class="row"><span class="nm" style="flex:1">${esc(t.name || (t.app === "booth-solo" ? "פוטובוט עצמאי" : "MAGNEX"))}</span><span class="pc ${t.st === "trial" ? "wait" : "rv"}">${t.st === "trial" ? `🕒 נותרו ${t.days} ימים` : "הניסיון נגמר"}</span></div>
-    <div class="code">${esc(t.code)}</div><div class="mut">${t.app === "booth-solo" ? "פוטובוט עצמאי" : "MAGNEX"} ${esc(t.ver)} · הותקן ${new Date(t.first).toLocaleDateString("he-IL")} · נראה ${ago(t.last)}</div>${contact(t.phone, t.email)}
+  $("#trial").innerHTML = T.map(t => `<div class="card"><div class="row"><span class="nm" style="flex:1">${esc(t.name || (t.app === "booth-solo" ? "פוטובוט סטיישן" : "MAGNEX"))}</span><span class="pc ${t.st === "trial" ? "wait" : "rv"}">${t.st === "trial" ? `🕒 נותרו ${t.days} ימים` : "הניסיון נגמר"}</span></div>
+    <div class="code">${esc(t.code)}</div><div class="mut">${t.app === "booth-solo" ? "פוטובוט סטיישן" : "MAGNEX"} ${esc(t.ver)} · הותקן ${new Date(t.first).toLocaleDateString("he-IL")} · נראה ${ago(t.last)}</div>${contact(t.phone, t.email)}
     ${(() => { const l = cmdFor(x => x.body?.code === t.code && Date.now() - x.t < 600000); return l ? stLine(l) : ""; })()}
     <div class="acts"><button class="sm ext" data-c="${esc(t.code)}" data-n="${esc(t.name || "")}" data-l="${t.st === "trial" ? +t.days || 0 : 0}">➕ עוד 14 יום ניסיון</button><button class="sm opn" data-c="${esc(t.code)}" data-k="addprod">💳 הפעל – שילם</button><button class="sm opn" data-c="${esc(t.code)}" data-k="gift">🎁 הפעל במתנה</button><button class="sm ghost fgt" data-c="${esc(t.code)}">🙈 הסתר</button></div>
     ${panel(t.code, t.name || "", [], t)}</div>`).join("");
-  $("#cust").querySelectorAll(".det-b").forEach(b => b.onclick = () => { const k = b.dataset.c; OPEN.has(k) ? OPEN.delete(k) : OPEN.add(k); render(); });
+  $("#cust").querySelectorAll(".det-b").forEach(b => b.onclick = (ev) => { if (ev.target.closest(".pnl,.acts,.chips,a,input,textarea,select")) return; const k = b.dataset.c; OPEN.has(k) ? OPEN.delete(k) : OPEN.add(k); render(); });
   bindActs();
   $("#cust").querySelectorAll("button.rv,button.rs").forEach(b => {
     const c = L[+b.dataset.i], p = b.dataset.p, on = b.classList.contains("rv");
