@@ -53,6 +53,11 @@ label.ck input{width:18px;height:18px}
 .det{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:13.5px}
 .buy{display:flex;gap:8px;flex-wrap:wrap;padding:5px 0;border-top:1px dashed var(--line)}
 .empty{color:var(--mut);text-align:center;padding:16px 4px}
+textarea,select,input[type=number],input[type=tel],input[type=email]{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 11px;outline:none}
+textarea{min-height:70px;resize:vertical}
+.pnl{margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:12px;background:color-mix(in srgb,var(--acc) 5%,var(--card))}
+.pnl .ttl{font-weight:700;margin-bottom:6px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
 .toast{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);background:#000c;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw;text-align:center}
 .toast.on{opacity:1}
 .spin{animation:sp 1s linear infinite;display:inline-block}@keyframes sp{to{transform:rotate(360deg)}}
@@ -85,8 +90,10 @@ label.ck input{width:18px;height:18px}
 const HP = new URLSearchParams(location.hash.slice(1));
 const K = HP.get("k") || "";
 const RELAY = "https://script.google.com/macros/s/" + (HP.get("s") || "AKfycbyujhq_7QMAJE6q6yaFFaqi95uG-7qKKTlUnmiRM5PSg8-4-Wktc21x67JOp7MvNMii") + "/exec";
-const PN = { magnex: "MAGNEX", booth: "פוטובוט (תוסף)", "booth-solo": "פוטובוט עצמאי", darkroom: "חדר חושך (תוסף)", owner: "הכול (בעלים)", "?": "רישיון" };
-const PAYN = { bit: "ביט", paybox: "פייבוקס", other: "אחר" };
+const PN = { magnex: "MAGNEX", booth: "פוטובוט (תוסף)", "booth-solo": "פוטובוט עצמאי", darkroom: "חדר חושך (תוסף)", pocket: "Pocket MAGNEX (תוסף)", owner: "הכול (בעלים)", "?": "רישיון" };
+const PAYN = { bit: "ביט", paybox: "פייבוקס", bank: "העברה בנקאית", other: "אחר" };
+const ALLP = ["magnex", "booth", "booth-solo", "darkroom", "pocket"];
+let PANEL = {}, PF = {};   // the open action panel per computer code + what was typed in it
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 let ST = null, OPEN = new Set(), EDIT = {}, LOCAL = [];
@@ -127,7 +134,7 @@ function contact(phone, email) {
 function cmdFor(pred) { const all = (ST?.cmds || []).concat(LOCAL); for (let i = all.length - 1; i >= 0; i--) if (pred(all[i])) return all[i]; return null; }
 function stLine(c) {
   if (!c) return "";
-  if (c.st === "new") return `<div class="st wait">⏳ נשלח לאיימק – יבוצע תוך חצי דקה${ST && Date.now() - ST.hb > 120000 ? " (כשהאיימק יחזור לרשת)" : ""}…</div>`;
+  if (c.st === "new" || c.st === "run") return `<div class="st wait">⏳ ${c.st === "run" ? "המחשב מבצע…" : "נשלח למחשב – יבוצע תוך חצי דקה" + (ST && Date.now() - ST.hb > 120000 ? " (כשהאיימק או המקבוק יחזרו לרשת)" : "")}</div>`;
   if (c.st === "done") return `<div class="st ok">✓ ${esc(c.res || "בוצע")}</div>`;
   return `<div class="st err">⚠ ${esc(c.res || "לא בוצע")}</div>`;
 }
@@ -146,11 +153,56 @@ async function send(cmd, okMsg) {
     toast(okMsg); render(); setTimeout(load, 4000);
   } catch (e) { toast("אין חיבור – נסה שוב"); }
 }
+function actBar(code) {
+  const k = PANEL[code];
+  return `<div class="acts">${[["addprod", "➕ הוסף תוכנה"], ["gift", "🎁 מתנה"], ["edit", "✏️ ערוך פרטים"]].map(([x, t]) => `<button class="sm opn${k === x ? " pri" : ""}" data-c="${esc(code)}" data-k="${x}">${t}</button>`).join("")}</div>`;
+}
+function panel(code, name, have, c) {
+  const k = PANEL[code]; if (!k) return "";
+  const f = PF[code] || (PF[code] = { prods: [], amount: "", method: "bit", msg: `היי ${String(name || "").trim().split(/\s+/)[0] || ""}, קיבלת מתנה מצוות MAGNEX 🎁 ותודה על האמון!`.replace("היי ,", "היי,"),
+    name: name || "", phone: c?.phone || "", email: c?.email || "", notes: c?.notes || "" });
+  const pick = ALLP.filter(p => !have.includes(p)).map(p => `<label class="ck"><input type="checkbox" class="fp" value="${p}" ${f.prods.includes(p) ? "checked" : ""}>${PN[p]}</label>`).join("") || `<span class="mut">יש לו כבר את כל התוכנות</span>`;
+  const nm = `<input type="text" class="fn" value="${esc(f.name)}" placeholder="שם הלקוח (יופיע ברישיון)">`;
+  if (k === "addprod") return `<div class="pnl" data-c="${esc(code)}"><div class="ttl">➕ הוספת תוכנה בתשלום</div>${nm}<div class="chips">${pick}</div>
+    <div class="g2"><input type="number" inputmode="decimal" class="fa" value="${esc(f.amount)}" placeholder="סכום ₪"><select class="fm">${Object.keys(PAYN).map(m => `<option value="${m}" ${f.method === m ? "selected" : ""}>${PAYN[m]}</option>`).join("")}</select></div>
+    <div class="acts"><button class="pri go" data-k="addprod">✅ התשלום התקבל – הפעל</button><button class="cx">ביטול</button></div></div>`;
+  if (k === "gift") return `<div class="pnl" data-c="${esc(code)}"><div class="ttl">🎁 מתנה – בלי תשלום</div>${nm}<div class="chips">${pick}</div>
+    <div style="margin-top:8px"><textarea class="fg" placeholder="הודעה אישית שתקפוץ לו בתוכנה (לא חובה)">${esc(f.msg)}</textarea></div>
+    <div class="acts"><button class="pri go" data-k="gift">🎁 שלח מתנה</button><button class="cx">ביטול</button></div></div>`;
+  return `<div class="pnl" data-c="${esc(code)}"><div class="ttl">✏️ פרטי הלקוח</div>${nm}
+    <div class="g2"><input type="tel" class="fph" value="${esc(f.phone)}" placeholder="טלפון"><input type="email" class="fe" value="${esc(f.email)}" placeholder="מייל"></div>
+    <div style="margin-top:8px"><textarea class="fno" placeholder="הערות">${esc(f.notes)}</textarea></div>
+    <div class="acts"><button class="pri go" data-k="custsave">💾 שמור</button><button class="cx">ביטול</button></div></div>`;
+}
+function bindActs() {
+  document.querySelectorAll("button.opn").forEach(b => b.onclick = () => { const c = b.dataset.c; PANEL[c] = PANEL[c] === b.dataset.k ? null : b.dataset.k; render(); });
+  document.querySelectorAll(".pnl").forEach(pn => {
+    const code = pn.dataset.c, f = PF[code];
+    const on = (sel, key, ev = "oninput") => { const el = pn.querySelector(sel); if (el) el[ev] = () => f[key] = el.value; };
+    on(".fn", "name"); on(".fa", "amount"); on(".fm", "method", "onchange"); on(".fg", "msg"); on(".fph", "phone"); on(".fe", "email"); on(".fno", "notes");
+    pn.querySelectorAll(".fp").forEach(x => x.onchange = () => f.prods = [...pn.querySelectorAll(".fp:checked")].map(y => y.value));
+    pn.querySelector(".cx").onclick = () => { PANEL[code] = null; delete PF[code]; render(); };
+    const go = pn.querySelector(".go"), k = go.dataset.k;
+    armed(go, () => {
+      if (!f.name.trim()) return toast("צריך שם לקוח");
+      if (k === "addprod" && !f.prods.length) return toast("לא נבחרה תוכנה");
+      if (k === "gift" && !f.prods.length && !f.msg.trim()) return toast("בחר תוכנה או כתוב הודעה");
+      const cmd = k === "custsave" ? { a: k, code, name: f.name.trim(), phone: f.phone, email: f.email, notes: f.notes }
+        : { a: k, code, name: f.name.trim(), products: f.prods, amount: k === "addprod" ? f.amount : "", method: f.method, msg: k === "gift" ? f.msg.trim() : "" };
+      PANEL[code] = null; delete PF[code];
+      send(cmd, k === "custsave" ? "💾 נשלח – הפרטים יישמרו" : k === "gift" ? "🎁 נשלח – המחשב יחתום וישלח לו" : "✅ נשלח – המחשב יחתום והרישיון יגיע אליו לבד");
+    });
+  });
+  document.querySelectorAll("button.ext").forEach(b => armed(b, () => send({ a: "trialext", code: b.dataset.c, name: b.dataset.n, days: 14, left: +b.dataset.l || 0 }, "➕ נשלח – הניסיון יוארך ב-14 יום")));
+  document.querySelectorAll("button.fgt").forEach(b => armed(b, () => send({ a: "forget", code: b.dataset.c }, "🙈 יוסתר מהרשימה")));
+  document.querySelectorAll("button.del").forEach(b => armed(b, () => send({ a: "delete", code: b.dataset.c, product: b.dataset.p, name: b.dataset.n }, "🗑 נשלח – הרישיון יושבת ויימחק מהרשימה")));
+  document.querySelectorAll("button.psh").forEach(b => armed(b, () => send({ a: "push", code: b.dataset.c, name: b.dataset.n }, "📤 נשלח – הרישיונות יגיעו אליו שוב")));
+}
 function render() {
   if (!ST) return;
   const on = Date.now() - ST.hb < 120000;
   $("#dot").className = "dot " + (on ? "on" : "off");
-  $("#hb").textContent = !ST.hb ? "האיימק עוד לא התחבר" : on ? "האיימק מחובר – אישורים מתבצעים מיד" : `האיימק לא מחובר מאז ${ago(ST.hb)} – פעולות יבוצעו כשיחזור לרשת`;
+  $("#hb").textContent = !ST.hb ? "מחשב הבעלים עוד לא התחבר" : on ? "מחשב הבעלים מחובר – פעולות מתבצעות מיד" : `אין מחשב בעלים מחובר מאז ${ago(ST.hb)} – פעולות יבוצעו כשהאיימק או המקבוק יחזרו לרשת`;
   // pending requests
   const P = ST.pending || [];
   $("#pH").textContent = `בקשות ממתינות${P.length ? " · " + P.length : ""}`;
@@ -164,7 +216,7 @@ function render() {
       ${contact(r.phone, r.email)}
       ${c && c.st !== "error" ? stLine(c) : `
       <div style="margin-top:10px"><input type="text" class="pn" value="${esc(e.name)}" placeholder="שם הלקוח (יופיע ברישיון)"></div>
-      <div class="chips">${["magnex", "booth", "booth-solo", "darkroom"].map(p => `<label class="ck"><input type="checkbox" class="pp" value="${p}" ${e.products.includes(p) ? "checked" : ""}>${PN[p]}</label>`).join("")}</div>
+      <div class="chips">${["magnex", "booth", "booth-solo", "darkroom", "pocket"].map(p => `<label class="ck"><input type="checkbox" class="pp" value="${p}" ${e.products.includes(p) ? "checked" : ""}>${PN[p]}</label>`).join("")}</div>
       <div class="acts"><button class="pri ap">✅ התשלום התקבל – הפעל</button><button class="rj">✖ דחה</button></div>${c ? stLine(c) : ""}`}
     </div>`;
   }).join("") : `<div class="empty">אין בקשות ממתינות 🎉</div>`;
@@ -187,28 +239,34 @@ function render() {
   $("#cH").textContent = `לקוחות${S ? " · " + (S.customers || []).length : ""}`;
   $("#cust").innerHTML = L.length ? L.map((c, i) => {
     const chips = (c.items || []).map(it => {
-      const pc = cmdFor(x => (x.a === "revoke" || x.a === "restore") && x.body?.code === c.code && x.body?.product === it.p && x.st === "new");
+      const pc = cmdFor(x => (x.a === "revoke" || x.a === "restore") && x.body?.code === c.code && x.body?.product === it.p && (x.st === "new" || x.st === "run"));
       if (pc) return `<span class="pc wait">⏳ ${PN[it.p] || it.p} · ${pc.a === "revoke" ? "משבית…" : "מחזיר…"}</span>`;
       return it.rev ? `<span class="pc rv">⛔ ${PN[it.p] || it.p} · מושבת <button class="sm ghost rs" data-i="${i}" data-p="${it.p}">↩ החזר</button></span>`
         : `<span class="pc ok">✓ ${PN[it.p] || it.p} · שולם <button class="sm ghost rv" data-i="${i}" data-p="${it.p}">⛔ השבת</button></span>`;
     }).join("");
-    const last = cmdFor(x => (x.a === "revoke" || x.a === "restore") && x.body?.code === c.code && x.st !== "new" && Date.now() - x.t < 600000);
+    const last = cmdFor(x => x.body?.code === c.code && x.a !== "approve" && x.a !== "reject" && Date.now() - x.t < 600000);
     const open = OPEN.has(c.code);
     return `<div class="card">
       <div class="row"><span class="nm" style="flex:1">${esc(c.name || "—")}</span><button class="sm det-b" data-c="${esc(c.code)}">${open ? "▲ סגור" : "👤 פרטים"}</button></div>
       <div class="code">${esc(c.code)}</div>
       <div class="chips">${chips}</div>${last ? stLine(last) : ""}
+      ${actBar(c.code)}${panel(c.code, c.name, (c.items || []).map(x => x.p), c)}
       ${open ? `<div class="det">${contact(c.phone, c.email) || `<div class="mut">אין טלפון או מייל שמורים</div>`}
         <div class="mut" style="margin:10px 0 4px">רכישות</div>
         ${(c.buys || []).map(b => `<div class="buy"><span class="mut">${esc(b.date)}</span><span style="flex:1">${(b.prods || []).map(p => PN[p] || p).join(" + ")}</span><b>${esc(b.amount)} ₪</b><span class="mut">${esc(PAYN[b.method] || "לא צוין")}</span></div>`).join("") || `<div class="mut">אין רכישות רשומות</div>`}
-        ${c.notes ? `<div class="mut" style="margin-top:8px">הערות: ${esc(c.notes)}</div>` : ""}</div>` : ""}
+        ${c.notes ? `<div class="mut" style="margin-top:8px">הערות: ${esc(c.notes)}</div>` : ""}
+        <div class="acts">${(c.items || []).map(it => `<button class="sm del" data-c="${esc(c.code)}" data-p="${it.p}" data-n="${esc(c.name)}">🗑 מחק ${PN[it.p] || it.p}</button>`).join("")}<button class="sm psh" data-c="${esc(c.code)}" data-n="${esc(c.name)}">📤 שלח לו שוב את הרישיונות</button></div></div>` : ""}
     </div>`;
   }).join("") : `<div class="empty">${S ? "לא נמצא" : ""}</div>`;
   const T = (S?.trials || []);
   $("#tH").hidden = !T.length; $("#tH").textContent = `🕒 בתקופת ניסיון · ${T.length}`;
   $("#trial").innerHTML = T.map(t => `<div class="card"><div class="row"><span class="nm" style="flex:1">${esc(t.name || (t.app === "booth-solo" ? "פוטובוט עצמאי" : "MAGNEX"))}</span><span class="pc ${t.st === "trial" ? "wait" : "rv"}">${t.st === "trial" ? `🕒 נותרו ${t.days} ימים` : "הניסיון נגמר"}</span></div>
-    <div class="code">${esc(t.code)}</div><div class="mut">${t.app === "booth-solo" ? "פוטובוט עצמאי" : "MAGNEX"} ${esc(t.ver)} · הותקן ${new Date(t.first).toLocaleDateString("he-IL")} · נראה ${ago(t.last)}</div>${contact(t.phone, t.email)}</div>`).join("");
+    <div class="code">${esc(t.code)}</div><div class="mut">${t.app === "booth-solo" ? "פוטובוט עצמאי" : "MAGNEX"} ${esc(t.ver)} · הותקן ${new Date(t.first).toLocaleDateString("he-IL")} · נראה ${ago(t.last)}</div>${contact(t.phone, t.email)}
+    ${(() => { const l = cmdFor(x => x.body?.code === t.code && Date.now() - x.t < 600000); return l ? stLine(l) : ""; })()}
+    <div class="acts"><button class="sm ext" data-c="${esc(t.code)}" data-n="${esc(t.name || "")}" data-l="${t.st === "trial" ? +t.days || 0 : 0}">➕ עוד 14 יום ניסיון</button><button class="sm opn" data-c="${esc(t.code)}" data-k="addprod">💳 הפעל – שילם</button><button class="sm opn" data-c="${esc(t.code)}" data-k="gift">🎁 הפעל במתנה</button><button class="sm ghost fgt" data-c="${esc(t.code)}">🙈 הסתר</button></div>
+    ${panel(t.code, t.name || "", [], t)}</div>`).join("");
   $("#cust").querySelectorAll(".det-b").forEach(b => b.onclick = () => { const k = b.dataset.c; OPEN.has(k) ? OPEN.delete(k) : OPEN.add(k); render(); });
+  bindActs();
   $("#cust").querySelectorAll("button.rv,button.rs").forEach(b => {
     const c = L[+b.dataset.i], p = b.dataset.p, on = b.classList.contains("rv");
     armed(b, () => send({ a: on ? "revoke" : "restore", code: c.code, product: p, name: c.name, reason: "מהטלפון" }, on ? "⛔ נשלח לאיימק – הרישיון יושבת" : "↩ נשלח לאיימק – הרישיון יוחזר"));
@@ -222,7 +280,7 @@ async function load() {
     if (!r.ok && (r.error === "unpaired" || r.error === "denied")) { PAIRED = false; return load(); }
     if (!r.ok) { $("#hb").textContent = r.error === "forbidden" ? "🔒 הקישור לא בתוקף – צור קישור חדש באיימק" : (r.error || "שגיאה"); return; }
     ST = r; LOCAL = LOCAL.filter(l => !(r.cmds || []).some(c => c.id === l.id));
-    const a = document.activeElement; if (!(a && (a.tagName === "INPUT") && a.type !== "checkbox")) render();
+    const a = document.activeElement; if (!(a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA" || a.tagName === "SELECT") && a.type !== "checkbox")) render();
   } catch (e) { $("#hb").textContent = "אין חיבור לאינטרנט"; $("#dot").className = "dot off"; }
   finally { $("#rf").textContent = "🔄"; }
 }
