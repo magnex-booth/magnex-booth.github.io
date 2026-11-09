@@ -260,11 +260,14 @@ function render() {
   }).join("") : `<div class="empty">${S ? "לא נמצא" : ""}</div>`;
   const T = (S?.trials || []);
   $("#tH").hidden = !T.length; $("#tH").textContent = `🕒 בתקופת ניסיון · ${T.length}`;
-  $("#trial").innerHTML = T.map(t => `<div class="card"><div class="row"><span class="nm" style="flex:1">${esc(t.name || (t.app === "booth-solo" ? "MAGNEX Booth Station" : "MAGNEX"))}</span><span class="pc ${t.st === "trial" ? "wait" : "rv"}">${t.st === "trial" ? `🕒 נותרו ${t.days} ימים` : "הניסיון נגמר"}</span></div>
-    <div class="code">${esc(t.code)}</div><div class="mut">${t.app === "booth-solo" ? "MAGNEX Booth Station" : "MAGNEX"} ${esc(t.ver)} · הותקן ${new Date(t.first).toLocaleDateString("he-IL")} · נראה ${ago(t.last)}</div>${contact(t.phone, t.email)}
+  // b150: the days count down here too – the customer's MAGNEX reports only when it is open and online
+  T.forEach(t => { if (t.st === "trial") { t.days = Math.max(0, (+t.days || 0) - Math.floor((Date.now() - (+t.last || Date.now())) / 86400000)); if (!t.days) t.st = "expired"; } });
+  $("#trial").innerHTML = T.map(t => { const open = OPEN.has("t:" + t.code); return `<div class="card"><div class="row det-b" data-c="t:${esc(t.code)}" style="cursor:pointer"><span class="nm" style="flex:1">${esc(t.name || (t.app === "booth-solo" ? "MAGNEX Booth Station" : "MAGNEX"))}</span><span class="pc ${t.st === "trial" ? "wait" : "rv"}">${t.st === "trial" ? `🕒 נותרו ${t.days} ימים` : "הניסיון נגמר"}</span><button class="sm">${open ? "▲ סגור" : "👤 פרטים"}</button></div>
+    ${open ? `<div class="code">${esc(t.code)}</div><div class="mut">${t.app === "booth-solo" ? "MAGNEX Booth Station" : "MAGNEX"} ${esc(t.ver)} · הותקן ${new Date(t.first).toLocaleDateString("he-IL")} · נראה ${ago(t.last)}</div>${contact(t.phone, t.email)}
     ${(() => { const l = cmdFor(x => x.body?.code === t.code && Date.now() - x.t < 600000); return l ? stLine(l) : ""; })()}
     <div class="acts"><button class="sm ext" data-c="${esc(t.code)}" data-n="${esc(t.name || "")}" data-l="${t.st === "trial" ? +t.days || 0 : 0}">➕ עוד 14 יום ניסיון</button><button class="sm opn" data-c="${esc(t.code)}" data-k="addprod">💳 הפעל – שילם</button><button class="sm opn" data-c="${esc(t.code)}" data-k="gift">🎁 הפעל במתנה</button><button class="sm ghost fgt" data-c="${esc(t.code)}">🙈 הסתר</button></div>
-    ${panel(t.code, t.name || "", [], t)}</div>`).join("");
+    ${panel(t.code, t.name || "", [], t)}` : ""}</div>`; }).join("");
+  $("#trial").querySelectorAll(".det-b").forEach(b => b.onclick = (ev) => { if (ev.target.closest(".pnl,.acts,a,input,textarea,select")) return; const k = b.dataset.c; OPEN.has(k) ? OPEN.delete(k) : OPEN.add(k); render(); });   // trials fold like the customers
   $("#cust").querySelectorAll(".det-b").forEach(b => b.onclick = (ev) => { if (ev.target.closest(".pnl,.acts,.chips,a,input,textarea,select")) return; const k = b.dataset.c; OPEN.has(k) ? OPEN.delete(k) : OPEN.add(k); render(); });
   bindActs();
   $("#cust").querySelectorAll("button.rv,button.rs").forEach(b => {
