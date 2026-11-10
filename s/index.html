@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0912">
+<meta name="robots" content="noindex">
+<title>הסטריפ שלכם · MAGNEX Booth</title>
+<style>
+/* MAGNEX Booth – the guest's strip (the QR printed on the strip opens this page).
+   The page is the same for everyone and holds nothing: the photo comes straight from the photographer's own Google Drive
+   (the file id is after the #, so it never even reaches this server). */
+:root{--bg:#0b0912;--surface:#1b1626;--line:rgba(255,255,255,.16);--muted:#c3bcd2;
+  --grad:linear-gradient(135deg,#ff3d6e,#ff8a3d 60%,#ffd23d);color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:#fff;font-family:-apple-system,system-ui,"Segoe UI",Arial,sans-serif}
+main{max-width:520px;margin:0 auto;padding:max(18px,env(safe-area-inset-top)) 18px max(26px,env(safe-area-inset-bottom));
+  display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
+h1{margin:4px 0 0;font-size:clamp(24px,7vw,32px);font-weight:900;line-height:1.15}
+.sub{color:var(--muted);font-size:16px;line-height:1.5;margin:0}
+.ph{width:100%;display:flex;justify-content:center;min-height:200px;align-items:center}
+#img{display:block;max-width:100%;max-height:68vh;height:auto;border-radius:6px;background:#fff;box-shadow:0 16px 40px rgba(0,0,0,.55);
+  -webkit-touch-callout:default;user-select:auto}
+.btns{width:100%;display:flex;flex-direction:column;gap:12px}
+.btn{font-family:inherit;font-weight:800;border:0;cursor:pointer;border-radius:999px;padding:17px 24px;font-size:19px;width:100%;
+  display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none}
+.btn-primary{background:var(--grad);color:#1a0d14}
+.btn-wa{background:#25d366;color:#05210f}
+.btn-ghost{background:rgba(255,255,255,.08);color:#fff;border:1.5px solid var(--line);font-size:16px;padding:13px 20px}
+.btn:focus-visible,.lnk:focus-visible{outline:3px solid #ffd23d;outline-offset:3px}
+.btn[disabled]{opacity:.6}
+.hint{color:var(--muted);font-size:13.5px;margin:0}
+.lnk{color:var(--muted);font-size:13.5px}
+.spinner{width:64px;height:64px;border-radius:50%;border:7px solid rgba(255,255,255,.15);border-top-color:#ff3d6e;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spinner{animation-duration:3s}}
+.big{font-size:72px;line-height:1}
+footer{color:var(--muted);font-size:12.5px;margin-top:4px}
+footer b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:900;letter-spacing:.5px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <section id="wait" style="display:flex;flex-direction:column;align-items:center;gap:16px;padding-top:30px" aria-live="polite">
+    <div class="spinner" role="img" aria-label="טוען"></div>
+    <p class="sub" id="waitTx">טוענים את הסטריפ שלכם…</p>
+  </section>
+
+  <section id="ok" hidden style="width:100%;display:flex;flex-direction:column;align-items:center;gap:16px">
+    <h1>הסטריפ שלכם 🎞️</h1>
+    <div class="ph"><img id="img" alt="הסטריפ שלכם מהפוטובוט"></div>
+    <div class="btns">
+      <button class="btn btn-primary" id="save" type="button">⬇ שמירת התמונה</button>
+      <a class="btn btn-wa" id="wa" href="#" target="_blank" rel="noopener">💬 שיתוף בוואטסאפ</a>
+    </div>
+    <p class="hint" id="saveHint">אפשר גם: לחיצה ארוכה על התמונה ← "שמירה בתמונות"</p>
+    <a class="lnk" id="drive" href="#" target="_blank" rel="noopener">לפתוח בגוגל דרייב</a>
+  </section>
+
+  <section id="msg" hidden style="display:flex;flex-direction:column;align-items:center;gap:12px;padding-top:24px" aria-live="assertive">
+    <div class="big" id="msgI" aria-hidden="true">⏳</div>
+    <h1 id="msgT"></h1>
+    <p class="sub" id="msgX"></p>
+    <button class="btn btn-ghost" id="retry" type="button" hidden>↻ לנסות שוב</button>
+  </section>
+
+  <footer><b>MAGNEX</b> Booth · print lazy</footer>
+</main>
+<script>
+"use strict";
+(function () {
+  var $ = function (s) { return document.getElementById(s); };
+  var id = decodeURIComponent((location.hash || "").replace(/^#/, "")).trim();
+  function show(n) { ["wait", "ok", "msg"].forEach(function (k) { $(k).hidden = k !== n; }); }
+  function msg(i, t, x, retry) { $("msgI").textContent = i; $("msgT").textContent = t; $("msgX").textContent = x || ""; $("retry").hidden = !retry; show("msg"); }
+  if (!/^[\w-]{20,64}$/.test(id)) { msg("🔍", "הקישור לא שלם", "סרקו שוב את הברקוד שעל הסטריפ."); return; }
+
+  var share = location.origin + location.pathname + "#" + id;
+  var SRC = ["https://lh3.googleusercontent.com/d/" + id + "=w1600", "https://drive.google.com/thumbnail?id=" + id + "&sz=w1600"];
+  var DL = "https://drive.google.com/uc?export=download&id=" + id;
+  $("drive").href = "https://drive.google.com/file/d/" + id + "/view";
+  $("wa").href = "https://wa.me/?text=" + encodeURIComponent("הסטריפ שלי מהפוטובוט 📸🎞️\n" + share);
+
+  /* the strip goes up to Drive when the booth's computer has internet – right after the print, or a bit later.
+     Until it's there: a friendly "almost ready", and the page tries again by itself. */
+  var tries = 0, started = Date.now();
+  function load() {
+    var k = 0, im = new Image();
+    function next() {
+      if (k < SRC.length) { im.src = SRC[k++] + (tries ? "&t=" + Date.now() : ""); return; }
+      tries++;
+      if (Date.now() - started < 15 * 60 * 1000) {
+        msg("⏳", "הסטריפ עוד בדרך", "הוא עולה כשיש אינטרנט בעמדה – בדרך כלל תוך כמה דקות. הדף ינסה שוב לבד.", true);
+        clearTimeout(load.t); load.t = setTimeout(load, 20000);
+      } else msg("🙈", "הסטריפ לא זמין", "אולי הוא עוד לא עלה, או שעברו 7 ימים והוא נמחק. אפשר לנסות שוב מאוחר יותר.", true);
+    }
+    im.onload = function () { $("img").src = im.src; show("ok"); };
+    im.onerror = next;
+    next();
+  }
+  $("retry").onclick = function () { started = Date.now(); show("wait"); load(); };
+
+  /* save: on phones that can, the real share sheet with the picture ("Save Image" on iPhone); otherwise Drive's download */
+  $("save").onclick = function () {
+    var b = $("save");
+    if (!(navigator.canShare && window.fetch)) { location.href = DL; return; }
+    b.disabled = true;
+    fetch($("img").src, { mode: "cors", credentials: "omit" }).then(function (r) { if (!r.ok) throw 0; return r.blob(); }).then(function (bl) {
+      var f = new File([bl], "MAGNEX-strip.jpg", { type: bl.type || "image/jpeg" });
+      if (!navigator.canShare({ files: [f] })) throw 0;
+      return navigator.share({ files: [f] });
+    }).catch(function (e) {
+      if (e && e.name === "AbortError") return;   // the guest closed the share sheet
+      location.href = DL;
+    }).then(function () { b.disabled = false; });
+  };
+  window.addEventListener("hashchange", function () { location.reload(); });
+  load();
+})();
+</script>
+</body>
+</html>
