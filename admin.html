@@ -90,9 +90,9 @@ textarea{min-height:70px;resize:vertical}
 const HP = new URLSearchParams(location.hash.slice(1));
 const K = HP.get("k") || "";
 const RELAY = "https://script.google.com/macros/s/" + (HP.get("s") || "AKfycbyujhq_7QMAJE6q6yaFFaqi95uG-7qKKTlUnmiRM5PSg8-4-Wktc21x67JOp7MvNMii") + "/exec";
-const PN = { magnex: "MAGNEX", booth: "MAGNEX Booth (תוסף)", "booth-solo": "MAGNEX Booth Station", darkroom: "MAGNEX Lab (תוסף)", pocket: "MAGNEX Pocket (תוסף)", owner: "הכול (בעלים)", "?": "רישיון" };
+const PN = { magnex: "MAGNEX", booth: "MAGNEX Booth (תוסף)", "booth-solo": "MAGNEX Booth Station", darkroom: "MAGNEX Lab (תוסף)", pocket: "MAGNEX Pocket (תוסף)", loupe: "MAGNEX Loupe (תוסף)", loupeprint: "MAGNEX Loupe הדפסה (תוסף)", owner: "הכול (בעלים)", "?": "רישיון" };
 const PAYN = { bit: "ביט", paybox: "פייבוקס", bank: "העברה בנקאית", other: "אחר" };
-const ALLP = ["magnex", "booth", "booth-solo", "darkroom", "pocket"];
+const ALLP = ["magnex", "booth", "booth-solo", "darkroom", "pocket", "loupe", "loupeprint"];
 let PANEL = {}, PF = {};   // the open action panel per computer code + what was typed in it
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -216,7 +216,7 @@ function render() {
       ${contact(r.phone, r.email)}
       ${c && c.st !== "error" ? stLine(c) : `
       <div style="margin-top:10px"><input type="text" class="pn" value="${esc(e.name)}" placeholder="שם הלקוח (יופיע ברישיון)"></div>
-      <div class="chips">${["magnex", "booth", "booth-solo", "darkroom", "pocket"].map(p => `<label class="ck"><input type="checkbox" class="pp" value="${p}" ${e.products.includes(p) ? "checked" : ""}>${PN[p]}</label>`).join("")}</div>
+      <div class="chips">${["magnex", "booth", "booth-solo", "darkroom", "pocket", "loupe", "loupeprint"].map(p => `<label class="ck"><input type="checkbox" class="pp" value="${p}" ${e.products.includes(p) ? "checked" : ""}>${PN[p]}</label>`).join("")}</div>
       <div class="acts"><button class="pri ap">✅ התשלום התקבל – הפעל</button><button class="rj">✖ דחה</button></div>${c ? stLine(c) : ""}`}
     </div>`;
   }).join("") : `<div class="empty">אין בקשות ממתינות 🎉</div>`;
