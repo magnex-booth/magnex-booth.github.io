@@ -48,7 +48,10 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
 .zooms{align-self:center;display:flex;gap:6px;background:rgba(0,0,0,.35);border-radius:99px;padding:4px}
 .zooms button{min-width:40px;height:34px;border-radius:99px;border:0;background:none;color:#fff;font-weight:800;font-size:13px;padding:0 8px}
 .zooms button.on{background:rgba(255,255,255,.92);color:#111}
-.crow{display:flex;align-items:center;justify-content:space-between;direction:ltr}
+.crow{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;direction:ltr}
+.crow .flipN{grid-column:1;justify-self:end;margin-right:26px;width:52px;height:52px}.crow .shutter{grid-column:2}
+#cam #oTog{display:none!important}
+#camBrand{margin-left:auto;margin-right:auto}
 /* b84: portrait – the shutter in the middle of the bottom bar (reachable with one thumb); the orientation switch a small tile beside it */
 @media not all and (orientation:landscape) and (max-height:560px){
   .crow{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;direction:ltr}
@@ -83,6 +86,7 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
   .cbot{top:0;bottom:0;left:auto;right:0;width:auto;justify-content:center;padding:max(10px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) 10px 10px}
   .cbot{gap:8px}.crow{flex-direction:column;gap:10px}.zooms{flex-direction:row}.zooms button{min-width:34px;height:30px}
   .shutter{width:66px;height:66px;border-width:4px;padding:4px}
+  .crow{display:flex;align-items:center}.crow .flipN{margin:0;width:44px;height:44px;order:2}
   .otog{flex:none;margin:0;width:150px;height:auto;flex-direction:column;gap:6px;padding:10px 8px;text-align:center}.otx small{display:none}.otx b{font-size:16px}
   .ctop{right:auto;flex-direction:column;gap:12px;height:100%;justify-content:center;padding:10px 10px 10px max(14px,env(safe-area-inset-left))}
   .ctop .brand{display:none}
@@ -131,12 +135,12 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
     <div class="brand sm" id="camBrand"><img class="ic lg" alt="" hidden><div class="wmw"><img class="wmi wmImgCam" alt="MAGNEX" hidden><span class="wmt wmTxtCam" style="color:var(--camFg)">MAGNEX</span><span class="pk">Pocket</span></div></div>
     <button class="rbtn" id="rotPic" type="button" aria-label="סובב את התמונה" hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg></button>
     <button class="rbtn" id="flip180" type="button" aria-label="הפוך את המסגרת" hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M7 8l5-5 5 5M7 16l5 5 5-5"/></svg></button>
-    <button class="rbtn" id="flip" type="button" aria-label="החלפת מצלמה"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9a8 8 0 0 1 14-3l2 2"/><path d="M20 4v4h-4"/><path d="M20 15a8 8 0 0 1-14 3l-2-2"/><path d="M4 20v-4h4"/></svg></button>
   </div>
   <div class="cbot">
     <div class="zooms" id="zooms" role="group" aria-label="זום" dir="ltr" hidden></div>
     <div class="crow">
       <button class="otog" id="oTog" type="button"><span class="omini" id="oMini" style="display:none"><i></i></span><svg class="oic" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M2 14a9 9 0 0 0 7 7M2 14l-1 3M2 14l3 .5"/></svg><span class="otx"><b id="oLbl">צילום לאורך</b><small id="oSub">לרוחב: פשוט סובבו את הטלפון</small></span></button>
+<button class="rbtn flipN" id="flip" type="button" aria-label="החלפת מצלמה"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9a8 8 0 0 1 14-3l2 2"/><path d="M20 4v4h-4"/><path d="M20 15a8 8 0 0 1-14 3l-2-2"/><path d="M4 20v-4h4"/></svg></button>
       <button class="shutter" id="snap" type="button" aria-label="צילום"><span></span></button>
     </div>
   </div>
@@ -200,7 +204,7 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
     else { g.disabled = false; g.textContent = "📸 פתחו מצלמה"; }
   }
   setInterval(() => { if (!$("start").hidden && !document.hidden) meLoad(); }, 5000);   // opened / closed at the stand → the phone follows without a reload
-  const PAGE_V = "96";
+  const PAGE_V = "97";
   const diag = []; const D = t => { diag.push(t); $("diag").textContent = diag.join("\n"); };
   const ua = navigator.userAgent || "", inApp = /FBAN|FBAV|Instagram|Line\/|WhatsApp|Snapchat|TikTok|MicroMessenger/i.test(ua);
   D("Pocket camera " + PAGE_V); D("secure: " + (window.isSecureContext ? "yes" : "NO") + " · getUserMedia: " + (navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? "yes" : "NO") + " · in-app: " + (inApp ? "yes" : "no"));
@@ -324,6 +328,7 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
     hw = null; torch = false; try { const cp = track.getCapabilities ? track.getCapabilities() : {}; if (cp.zoom && cp.zoom.max > cp.zoom.min) hw = { min: cp.zoom.min, max: cp.zoom.max }; torch = !!cp.torch; } catch (_) { }
     zoom = 1; zoomUI(); if (hw) setZoom(Math.max(hw.min, Math.min(hw.max, 1)));
     vidAdj = 0; D("camera: " + facing + " " + video.videoWidth + "×" + video.videoHeight + " · zoom: " + (hw ? `camera ${hw.min}–${hw.max}` : "digital 1–5") + " · torch: " + (torch ? "yes" : "no"));
+    try { const dv = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "videoinput"); D("cameras: " + dv.map(d => (d.label || "?").replace(/camera2? /i, "c")).join(" | ")); } catch (_) { }
     try { if (flashOn && facing === "environment" && torch) torchSet(true); } catch (_) { }   /* b87: the back camera's light on as soon as the camera turns */
   }
   function stopCam() { cancelAnimationFrame(raf); if (stream) stream.getTracks().forEach(t => t.stop()); stream = null; track = null; }
@@ -452,7 +457,7 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
   $("snap").onclick = async () => {
     if (busy || !video || !video.videoWidth) return; busy = true;
     const fl = $("flash"), cd = $("cd"); let c;
-    audio(); shutLoad(); cd.style.transform = rotated() ? "rotate(" + (rotSign > 0 ? 90 : -90) + "deg)" : ""; let tcMeta = null, tcOld = ""; const selfFl = flashOn && !(facing === "environment" && torch); for (let i = 2; i > 0; i--) { cd.textContent = i; cd.style.opacity = 1; if (selfFl && i === 1) { fl.style.transition = "opacity .3s"; fl.style.opacity = 1; $("chz").style.opacity = 1; try { tcMeta = document.querySelector('meta[name="theme-color"]'); tcOld = tcMeta.content; tcMeta.content = "#ffffff"; } catch (_) { } cd.style.color = "#222"; cd.style.textShadow = "none"; } beep(i === 1 ? 1175 : 880, .15); await wait(1000); }   /* b89: the selfie light is already full when the picture is taken */   /* b87: a 2-second timer before every picture */
+    audio(); shutLoad(); { const z = $("chz"), rr = rotated(); z.style.top = rr ? "50%" : "60%"; z.style.left = rr ? "50%" : "0"; z.style.right = rr ? "auto" : "0"; z.style.whiteSpace = rr ? "nowrap" : ""; z.style.transform = rr ? "translate(-50%,-50%) rotate(" + (rotSign > 0 ? 90 : -90) + "deg)" : ""; } cd.style.transform = rotated() ? "rotate(" + (rotSign > 0 ? 90 : -90) + "deg)" : ""; let tcMeta = null, tcOld = ""; const selfFl = flashOn && !(facing === "environment" && torch); for (let i = 2; i > 0; i--) { cd.textContent = i; cd.style.opacity = 1; if (selfFl && i === 1) { fl.style.transition = "opacity .3s"; fl.style.opacity = 1; $("chz").style.opacity = 1; try { tcMeta = document.querySelector('meta[name="theme-color"]'); tcOld = tcMeta.content; tcMeta.content = "#ffffff"; } catch (_) { } cd.style.color = "#222"; cd.style.textShadow = "none"; } beep(i === 1 ? 1175 : 880, .15); await wait(1000); }   /* b89: the selfie light is already full when the picture is taken */   /* b87: a 2-second timer before every picture */
     cd.style.opacity = 0; cd.style.color = ""; cd.style.textShadow = "";
     if (flashOn && facing === "environment" && torch) {   // the back camera's own light
       try { await track.applyConstraints({ advanced: [{ torch: true }] }); await wait(450); } catch (_) { }
