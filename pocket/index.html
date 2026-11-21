@@ -69,8 +69,8 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
 .shutter:active span{transform:scale(.9)}
 #rotHint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:3;background:rgba(0,0,0,.6);color:#fff;font-weight:800;font-size:16px;padding:16px 20px;border-radius:18px;display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none;transition:opacity .4s}
 #zoomLbl{position:absolute;left:50%;transform:translateX(-50%);top:45%;z-index:3;background:rgba(0,0,0,.55);color:#fff;font-weight:900;font-size:22px;padding:8px 16px;border-radius:99px;pointer-events:none;opacity:0;transition:opacity .3s}
-#cd{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:900 34vmin/1 system-ui,sans-serif;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.65);opacity:0;pointer-events:none;z-index:5;transition:opacity .15s}
-#flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:4;transition:opacity .35s}
+#cd{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:900 34vmin/1 system-ui,sans-serif;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.65);opacity:0;pointer-events:none;z-index:60;transition:opacity .15s}
+#flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:50;transition:opacity .35s}
 #cam.rot #camBrand{display:none}   /* turned landscape view: room for ⟳ and ⇅ */
 #flashB.off{opacity:.55}#flashB.off svg{fill:none}
 #flashB.on{background:#ffd23d;color:#111}
@@ -112,6 +112,7 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
   <div><h1 id="evName">MAGNEX Pocket</h1><p class="ev2" id="evSub" hidden></p></div>
   <img id="hero" alt="" hidden>
   <div id="lockTip" hidden style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.08);border-radius:14px;padding:10px 12px;font-size:13px;line-height:1.35;text-align:right"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4h-4"/><rect x="9" y="11" width="6" height="5" rx="1"/><path d="M10.5 11V9.8a1.5 1.5 0 0 1 3 0V11"/></svg><span>באייפון: נעלו את סיבוב המסך (מרכז הבקרה ← סמל החץ המעגלי עם המנעול) לפני הצילום</span></div>
+  <div id="briTip" style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.08);border-radius:14px;padding:10px 12px;font-size:13px;line-height:1.35;text-align:right"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg><span>הגדילו את בהירות המסך לשיא לפני הצילום – בסלפי המסך הלבן משמש כפלאש</span></div>
   <button class="btn pri" id="go" type="button">📸 פתחו מצלמה</button>
   <p class="sub" style="font-size:13px">הקוד שלכם: <b dir="ltr" class="mycode"></b></p>
   <details class="diag"><summary>פרטים טכניים</summary><pre id="diag"></pre></details>
@@ -194,7 +195,7 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
     else { g.disabled = false; g.textContent = "📸 פתחו מצלמה"; }
   }
   setInterval(() => { if (!$("start").hidden && !document.hidden) meLoad(); }, 5000);   // opened / closed at the stand → the phone follows without a reload
-  const PAGE_V = "89";
+  const PAGE_V = "91";
   const diag = []; const D = t => { diag.push(t); $("diag").textContent = diag.join("\n"); };
   const ua = navigator.userAgent || "", inApp = /FBAN|FBAV|Instagram|Line\/|WhatsApp|Snapchat|TikTok|MicroMessenger/i.test(ua);
   D("Pocket camera " + PAGE_V); D("secure: " + (window.isSecureContext ? "yes" : "NO") + " · getUserMedia: " + (navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? "yes" : "NO") + " · in-app: " + (inApp ? "yes" : "no"));
@@ -440,7 +441,7 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
   $("snap").onclick = async () => {
     if (busy || !video || !video.videoWidth) return; busy = true;
     const fl = $("flash"), cd = $("cd"); let c;
-    audio(); shutLoad(); cd.style.transform = rotated() ? "rotate(" + (rotSign > 0 ? 90 : -90) + "deg)" : ""; const selfFl = flashOn && !(facing === "environment" && torch); for (let i = 2; i > 0; i--) { cd.textContent = i; cd.style.opacity = 1; if (selfFl && i === 1) { fl.style.transition = "opacity .3s"; fl.style.opacity = 1; cd.style.color = "#222"; cd.style.textShadow = "none"; } beep(i === 1 ? 1175 : 880, .15); await wait(1000); }   /* b89: the selfie light is already full when the picture is taken */   /* b87: a 2-second timer before every picture */
+    audio(); shutLoad(); cd.style.transform = rotated() ? "rotate(" + (rotSign > 0 ? 90 : -90) + "deg)" : ""; let tcMeta = null, tcOld = ""; const selfFl = flashOn && !(facing === "environment" && torch); for (let i = 2; i > 0; i--) { cd.textContent = i; cd.style.opacity = 1; if (selfFl && i === 1) { fl.style.transition = "opacity .3s"; fl.style.opacity = 1; try { tcMeta = document.querySelector('meta[name="theme-color"]'); tcOld = tcMeta.content; tcMeta.content = "#ffffff"; } catch (_) { } cd.style.color = "#222"; cd.style.textShadow = "none"; } beep(i === 1 ? 1175 : 880, .15); await wait(1000); }   /* b89: the selfie light is already full when the picture is taken */   /* b87: a 2-second timer before every picture */
     cd.style.opacity = 0; cd.style.color = ""; cd.style.textShadow = "";
     if (flashOn && facing === "environment" && torch) {   // the back camera's own light
       try { await track.applyConstraints({ advanced: [{ torch: true }] }); await wait(450); } catch (_) { }
@@ -448,7 +449,7 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
       fl.style.transition = "none"; fl.style.opacity = .8; requestAnimationFrame(() => { fl.style.transition = "opacity .35s"; fl.style.opacity = 0; });
     } else if (flashOn) {   // selfie: the screen itself lights the face (white screen, then the picture)
       fl.style.transition = "none"; fl.style.opacity = 1; c = capture(); clickSnd(); await wait(250);
-      fl.style.transition = "opacity .35s"; fl.style.opacity = 0;
+      fl.style.transition = "opacity .35s"; fl.style.opacity = 0; try { if (tcMeta) tcMeta.content = tcOld; } catch (_) { }
     } else {
       c = capture(); clickSnd(); fl.style.transition = "none"; fl.style.opacity = .7; requestAnimationFrame(() => { fl.style.transition = "opacity .35s"; fl.style.opacity = 0; });
     }
