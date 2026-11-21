@@ -28,7 +28,7 @@ button{font:inherit;cursor:pointer}
 .ev2{margin:0;font-size:15px;opacity:.75}
 .sub{color:var(--muted);font-size:16px;line-height:1.5;margin:0;max-width:440px}
 .brandRow{display:flex;align-items:center;justify-content:center;gap:8px;direction:ltr}.brandRow .quota{width:92px;white-space:normal;line-height:1.2;text-align:center;font-size:12px;padding:6px 8px;border-radius:14px;flex:none}   /* b93: the logo moves left, the magnets counter sits right beside it */
-#start{overflow:hidden;gap:10px}#start #hero{width:auto;max-width:62vw;max-height:24vh;object-fit:contain}   /* b93: the start screen never scrolls */
+#start{overflow:hidden;gap:10px}#start #hero{flex:1 1 0;min-height:0;height:0;width:100%;max-width:94vw;object-fit:contain;box-shadow:none;filter:drop-shadow(0 14px 22px rgba(0,0,0,.4));margin:0}#start details.diag{margin-top:0}   /* b94: the picture takes all the free height, the camera button + code sit at the bottom; the screen never scrolls */
 .quota{font-size:13px;font-weight:700;padding:5px 14px;border-radius:99px;background:var(--secBg);border:1px solid var(--line)}
 .btn{font-weight:800;border:0;border-radius:var(--rad);padding:17px 24px;font-size:20px;width:100%;max-width:440px}
 .btn:disabled{opacity:.55}
@@ -197,7 +197,7 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
     else { g.disabled = false; g.textContent = "📸 פתחו מצלמה"; }
   }
   setInterval(() => { if (!$("start").hidden && !document.hidden) meLoad(); }, 5000);   // opened / closed at the stand → the phone follows without a reload
-  const PAGE_V = "93";
+  const PAGE_V = "94";
   const diag = []; const D = t => { diag.push(t); $("diag").textContent = diag.join("\n"); };
   const ua = navigator.userAgent || "", inApp = /FBAN|FBAV|Instagram|Line\/|WhatsApp|Snapchat|TikTok|MicroMessenger/i.test(ua);
   D("Pocket camera " + PAGE_V); D("secure: " + (window.isSecureContext ? "yes" : "NO") + " · getUserMedia: " + (navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? "yes" : "NO") + " · in-app: " + (inApp ? "yes" : "no"));
