@@ -200,7 +200,7 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
     else { g.disabled = false; g.textContent = "📸 פתחו מצלמה"; }
   }
   setInterval(() => { if (!$("start").hidden && !document.hidden) meLoad(); }, 5000);   // opened / closed at the stand → the phone follows without a reload
-  const PAGE_V = "95";
+  const PAGE_V = "96";
   const diag = []; const D = t => { diag.push(t); $("diag").textContent = diag.join("\n"); };
   const ua = navigator.userAgent || "", inApp = /FBAN|FBAV|Instagram|Line\/|WhatsApp|Snapchat|TikTok|MicroMessenger/i.test(ua);
   D("Pocket camera " + PAGE_V); D("secure: " + (window.isSecureContext ? "yes" : "NO") + " · getUserMedia: " + (navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? "yes" : "NO") + " · in-app: " + (inApp ? "yes" : "no"));
@@ -258,8 +258,14 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
   const ASPECT = { portrait: 3 / 4, landscape: 4 / 3 };
   let rotSign = 1, motionOk = false;
   const IOSD = /iPhone|iPad|iPod/.test(ua) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(ua));
-  let manualRot = false;
-  function onMotion(e) { const g = e.accelerationIncludingGravity; if (!g || g.x == null || manualRot) return; const ux = IOSD ? -g.x : g.x; if (ux > 6) rotSign = 1; else if (ux < -6) rotSign = -1; }
+  let manualRot = false, autoL = false;
+  function autoOrient(g) {   // rotation-locked phone: the page never turns, so read the sideways tilt and switch the frame by itself
+    if ($("cam").hidden || busy || innerHeight <= innerWidth || g.x == null) return;
+    const ax = Math.abs(g.x), ay = Math.abs(g.y || 0);
+    if (orient === "portrait" && ax > 7 && ay < 4) { autoL = true; setOrient("landscape"); }
+    else if (orient === "landscape" && autoL && ay > 7 && ax < 4) { autoL = false; setOrient("portrait"); }
+  }
+  function onMotion(e) { const g = e.accelerationIncludingGravity; if (g) autoOrient(g); if (!g || g.x == null || manualRot) return; const ux = IOSD ? -g.x : g.x; if (ux > 6) rotSign = 1; else if (ux < -6) rotSign = -1; }
   async function wantMotion() {   // iPhone asks once ("motion & orientation"); Android needs no permission
     if (motionOk) return; try { if (window.DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission === "function") { const r = await DeviceMotionEvent.requestPermission(); if (r !== "granted") { D("motion: denied"); return; } }
       addEventListener("devicemotion", onMotion); motionOk = true; D("motion: on"); } catch (e) { D("motion: " + (e.name || e)); } }
@@ -345,10 +351,10 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
     // the switch always offers the OTHER way, with a little magnet of that shape
     t.classList.toggle("land", land); $("oLbl").textContent = land ? "צילום לרוחב" : "צילום לאורך"; $("oSub").textContent = land ? "לחזרה: סובבו לאורך" : "לרוחב: פשוט סובבו את הטלפון";
     t.setAttribute("aria-label", $("oLbl").textContent); miniDraw();
-    const h = $("rotHint"); if (rotated()) { h.querySelector("span").textContent = isIOS ? "גללו את המסך למעלה כדי להסתיר את פסי Safari" : "סובבו את הטלפון לרוחב"; h.hidden = false; h.style.opacity = 1; clearTimeout(hintT); hintT = setTimeout(() => { h.style.opacity = 0; setTimeout(() => h.hidden = true, 400); }, isIOS ? 4200 : 2600); } else h.hidden = true;   /* b81: turned view on an upright iPhone → hint to hide the Safari bars */
+    const h = $("rotHint"); if (false) { h.querySelector("span").textContent = isIOS ? "גללו את המסך למעלה כדי להסתיר את פסי Safari" : "סובבו את הטלפון לרוחב"; h.hidden = false; h.style.opacity = 1; clearTimeout(hintT); hintT = setTimeout(() => { h.style.opacity = 0; setTimeout(() => h.hidden = true, 400); }, isIOS ? 4200 : 2600); } else h.hidden = true;   /* b81: turned view on an upright iPhone → hint to hide the Safari bars */
   }
   addEventListener("resize", () => { if (innerWidth > innerHeight && orient === "portrait" && !$("cam").hidden) setOrient("landscape"); });   // the page itself turned → the landscape magnet
-  $("oTog").onclick = () => { if (orient === "portrait") { wantMotion(); setOrient("landscape"); } else setOrient("portrait"); };
+  $("oTog").onclick = () => { autoL = false; if (orient === "portrait") { wantMotion(); setOrient("landscape"); } else setOrient("portrait"); };
   function miniDraw() {   // the little magnet in the switch: the event's real frame of the OTHER shape
     const f = frames[orient === "landscape" ? "portrait" : "landscape"], i = $("oMini").querySelector("i"); if (!f) return;
     const c = document.createElement("canvas"); c.width = Math.round(f.width / 6); c.height = Math.round(f.height / 6); const x = c.getContext("2d");
@@ -427,7 +433,7 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
     h.hidden = false; h.style.opacity = 1; setTimeout(() => { h.style.opacity = 0; setTimeout(() => { h.hidden = true; h.querySelector("span").textContent = "סובבו את הטלפון לרוחב"; }, 400); }, 5200);
   });
   $("go").onclick = async () => {
-    if ($("go").disabled) return; lockPortrait(); setOrient(innerWidth > innerHeight ? "landscape" : orient); show("cam"); loop();
+    if ($("go").disabled) return; wantMotion(); lockPortrait(); setOrient(innerWidth > innerHeight ? "landscape" : orient); show("cam"); loop();
     try { await openCam(); }
     catch (e) { D("camera error: " + (e.name || "") + " " + (e.message || e)); stopCam(); show("start"); $("file").click(); }
   };
