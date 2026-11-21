@@ -61,6 +61,9 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
 /* one big switch (portrait ⇄ landscape) on the right, the shutter on the left */
 .otog{direction:rtl;flex:1;margin-right:16px;height:96px;border-radius:26px;border:2px solid var(--acc);background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 24%,transparent),rgba(255,138,61,.12));color:var(--camFg);display:flex;align-items:center;gap:14px;padding:0 14px;box-shadow:0 0 22px color-mix(in srgb,var(--acc) 40%,transparent);text-align:start}
 .otog:active{transform:scale(.98)}
+#cam .otog{height:auto;min-height:56px;border:0;border-radius:16px;background:rgba(0,0,0,.55);box-shadow:none;gap:10px;padding:8px 12px}
+#cam .otog .oic{flex:none;color:var(--acc)}
+#cam .otx b{font-size:15px;font-weight:800}#cam .otx small{font-size:12px;opacity:.85}
 .omini{flex:none;width:70px;height:52px;background:#fff;padding:5px 5px 12px;box-shadow:0 6px 14px rgba(0,0,0,.4);transform:rotate(-6deg);display:block}
 .omini i{display:block;width:100%;height:100%;background:linear-gradient(180deg,#a9cbe6,#f3d9bd 62%,#c9a27c) center/cover}
 .otog.land .omini{width:44px;height:60px;padding:5px 5px 13px}
@@ -133,7 +136,7 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
   <div class="cbot">
     <div class="zooms" id="zooms" role="group" aria-label="זום" dir="ltr" hidden></div>
     <div class="crow">
-      <button class="otog" id="oTog" type="button"><span class="omini" id="oMini"><i></i></span><span class="otx"><b id="oLbl">צלמו לרוחב</b><small id="oSub">לוחצים ומסובבים את הטלפון</small></span></button>
+      <button class="otog" id="oTog" type="button"><span class="omini" id="oMini" style="display:none"><i></i></span><svg class="oic" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M2 14a9 9 0 0 0 7 7M2 14l-1 3M2 14l3 .5"/></svg><span class="otx"><b id="oLbl">צילום לאורך</b><small id="oSub">לרוחב: פשוט סובבו את הטלפון</small></span></button>
       <button class="shutter" id="snap" type="button" aria-label="צילום"><span></span></button>
     </div>
   </div>
@@ -197,7 +200,7 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
     else { g.disabled = false; g.textContent = "📸 פתחו מצלמה"; }
   }
   setInterval(() => { if (!$("start").hidden && !document.hidden) meLoad(); }, 5000);   // opened / closed at the stand → the phone follows without a reload
-  const PAGE_V = "94";
+  const PAGE_V = "95";
   const diag = []; const D = t => { diag.push(t); $("diag").textContent = diag.join("\n"); };
   const ua = navigator.userAgent || "", inApp = /FBAN|FBAV|Instagram|Line\/|WhatsApp|Snapchat|TikTok|MicroMessenger/i.test(ua);
   D("Pocket camera " + PAGE_V); D("secure: " + (window.isSecureContext ? "yes" : "NO") + " · getUserMedia: " + (navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? "yes" : "NO") + " · in-app: " + (inApp ? "yes" : "no"));
@@ -340,7 +343,7 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
   function setOrient(o) {
     orient = o; const land = o === "landscape", t = $("oTog"); t.classList.toggle("land", !land ? false : true);
     // the switch always offers the OTHER way, with a little magnet of that shape
-    t.classList.toggle("land", land); $("oLbl").textContent = land ? "צלמו לאורך" : "צלמו לרוחב"; $("oSub").textContent = land ? "חזרה למגנט עומד" : "לוחצים ומסובבים את הטלפון";
+    t.classList.toggle("land", land); $("oLbl").textContent = land ? "צילום לרוחב" : "צילום לאורך"; $("oSub").textContent = land ? "לחזרה: סובבו לאורך" : "לרוחב: פשוט סובבו את הטלפון";
     t.setAttribute("aria-label", $("oLbl").textContent); miniDraw();
     const h = $("rotHint"); if (rotated()) { h.querySelector("span").textContent = isIOS ? "גללו את המסך למעלה כדי להסתיר את פסי Safari" : "סובבו את הטלפון לרוחב"; h.hidden = false; h.style.opacity = 1; clearTimeout(hintT); hintT = setTimeout(() => { h.style.opacity = 0; setTimeout(() => h.hidden = true, 400); }, isIOS ? 4200 : 2600); } else h.hidden = true;   /* b81: turned view on an upright iPhone → hint to hide the Safari bars */
   }
