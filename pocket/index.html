@@ -46,7 +46,16 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
 .zooms{align-self:center;display:flex;gap:6px;background:rgba(0,0,0,.35);border-radius:99px;padding:4px}
 .zooms button{min-width:40px;height:34px;border-radius:99px;border:0;background:none;color:#fff;font-weight:800;font-size:13px;padding:0 8px}
 .zooms button.on{background:rgba(255,255,255,.92);color:#111}
-.crow{display:flex;align-items:center;justify-content:space-between;direction:ltr}   /* the switch on the left, the shutter on the right (a right-hand selfie) */
+.crow{display:flex;align-items:center;justify-content:space-between;direction:ltr}
+/* b84: portrait – the shutter in the middle of the bottom bar (reachable with one thumb); the orientation switch a small tile beside it */
+@media not all and (orientation:landscape) and (max-height:560px){
+  .crow{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;direction:ltr}
+  .crow .otog{grid-column:1;justify-self:start;flex:none;margin:0;width:88px;height:88px;border-radius:20px;flex-direction:column;justify-content:center;gap:4px;padding:6px;text-align:center;box-shadow:none}
+  .crow .otog .omini{width:40px;height:30px;padding:3px 3px 7px}.crow .otog.land .omini{width:28px;height:38px;padding:3px 3px 8px}
+  .crow .otx small{display:none}.crow .otx b{font-size:12px;line-height:1.15}
+  .crow .shutter{grid-column:2}
+}
+   /* the switch on the left, the shutter on the right (a right-hand selfie) */
 /* one big switch (portrait ⇄ landscape) on the right, the shutter on the left */
 .otog{direction:rtl;flex:1;margin-right:16px;height:96px;border-radius:26px;border:2px solid var(--acc);background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 24%,transparent),rgba(255,138,61,.12));color:var(--camFg);display:flex;align-items:center;gap:14px;padding:0 14px;box-shadow:0 0 22px color-mix(in srgb,var(--acc) 40%,transparent);text-align:start}
 .otog:active{transform:scale(.98)}
@@ -438,7 +447,8 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
   $("again").onclick = () => $("go").onclick();
   $("ok").onclick = async () => {
     const b = $("ok"); if (b.disabled) return; b.disabled = true; b.textContent = "שולח…";
-    const f = frames[orient], W = f ? f.width : (orient === "landscape" ? 1200 : 900), H = f ? f.height : Math.round(W / ASPECT[orient]);
+    const f = frames[orient], base = orient === "landscape" ? 1200 : 900; let W = f ? f.width : base, H = f ? f.height : Math.round(W / ASPECT[orient]);
+    if (f && W < base) { H = Math.round(H * base / W); W = base; }   /* b84: the frame sent to the phone may be shrunk (size limit) – the picture is still made at full print size */
     const c = document.createElement("canvas"); c.width = W; c.height = H; compose(c.getContext("2d"), W, H); const img = c.toDataURL("image/jpeg", .92);
     try {
       const r = await (RELAY   // text/plain = no CORS preflight (Google scripts)
