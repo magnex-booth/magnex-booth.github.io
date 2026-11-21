@@ -204,7 +204,7 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
     else { g.disabled = false; g.textContent = "📸 פתחו מצלמה"; }
   }
   setInterval(() => { if (!$("start").hidden && !document.hidden) meLoad(); }, 5000);   // opened / closed at the stand → the phone follows without a reload
-  const PAGE_V = "97";
+  const PAGE_V = "98";
   const diag = []; const D = t => { diag.push(t); $("diag").textContent = diag.join("\n"); };
   const ua = navigator.userAgent || "", inApp = /FBAN|FBAV|Instagram|Line\/|WhatsApp|Snapchat|TikTok|MicroMessenger/i.test(ua);
   D("Pocket camera " + PAGE_V); D("secure: " + (window.isSecureContext ? "yes" : "NO") + " · getUserMedia: " + (navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? "yes" : "NO") + " · in-app: " + (inApp ? "yes" : "no"));
@@ -318,26 +318,30 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
     if (CAL && rot && video && video.videoWidth) { const dbg = $("dbg"); const t = `${facing} | stream ${video.videoWidth}x${video.videoHeight} | dir ${rotSign > 0 ? "+1" : "-1"} | sensor ${motionOk ? "ON" : "off"} | fix ${vidAdj} | turn ${vidTurn(true)}`; if (dbg.textContent !== t) dbg.textContent = t; dbg.hidden = false; } else $("dbg").hidden = true; $("cam").classList.toggle("rot", rot);   // always there in the turned landscape view: one tap turns the picture 180°
     raf = requestAnimationFrame(loop);
   }
+  let forceId = null, wideId = null, mainId = null, onWide = false;   // Android: the 0.5× lens is a separate camera, not a zoom
+  async function swapCam(w) { forceId = w ? wideId : mainId; onWide = w; try { await openCam(); } catch (e) { D("wide error: " + e.name); forceId = null; onWide = false; try { await openCam(); } catch (_) { } } }
   async function openCam() {
     if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) throw new Error("no getUserMedia");
     if (stream) stream.getTracks().forEach(t => t.stop());
-    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing, width: { ideal: 2560 }, height: { ideal: 1920 } }, audio: false });
+    stream = await navigator.mediaDevices.getUserMedia({ video: Object.assign(forceId ? { deviceId: { exact: forceId } } : { facingMode: facing }, { width: { ideal: 2560 }, height: { ideal: 1920 } }), audio: false });
     track = stream.getVideoTracks()[0];
     if (!video) { video = document.createElement("video"); video.playsInline = true; video.muted = true; video.setAttribute("playsinline", ""); }
     video.srcObject = stream; await video.play();
     hw = null; torch = false; try { const cp = track.getCapabilities ? track.getCapabilities() : {}; if (cp.zoom && cp.zoom.max > cp.zoom.min) hw = { min: cp.zoom.min, max: cp.zoom.max }; torch = !!cp.torch; } catch (_) { }
+    try { const cur = (track.getSettings() || {}).deviceId, dv = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "videoinput" && (d.label || "").toLowerCase().includes(facing === "user" ? "front" : "back")); if (!onWide) { mainId = cur; const o = dv.find(d => d.deviceId !== cur); wideId = o ? o.deviceId : null; D("cameras: " + dv.map(d => (d.label || "?").replace(/camera2? /i, "c")).join(" | ") + " · 0.5× lens: " + (o ? (o.label || "?").replace(/camera2? /i, "c") : "none")); } } catch (_) { }
     zoom = 1; zoomUI(); if (hw) setZoom(Math.max(hw.min, Math.min(hw.max, 1)));
     vidAdj = 0; D("camera: " + facing + " " + video.videoWidth + "×" + video.videoHeight + " · zoom: " + (hw ? `camera ${hw.min}–${hw.max}` : "digital 1–5") + " · torch: " + (torch ? "yes" : "no"));
-    try { const dv = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "videoinput"); D("cameras: " + dv.map(d => (d.label || "?").replace(/camera2? /i, "c")).join(" | ")); } catch (_) { }
     try { if (flashOn && facing === "environment" && torch) torchSet(true); } catch (_) { }   /* b87: the back camera's light on as soon as the camera turns */
   }
   function stopCam() { cancelAnimationFrame(raf); if (stream) stream.getTracks().forEach(t => t.stop()); stream = null; track = null; }
   // ---------- zoom 0.5× – 5× ----------
   const zMin = () => hw ? Math.max(.5, hw.min) : 1, zMax = () => hw ? Math.min(5, hw.max) : 5;
   function zoomUI() {
-    const opts = [.5, 1, 2, 5].filter(v => v >= zMin() - 1e-6 && v <= zMax() + 1e-6);
+    const sep = !!wideId && !(hw && hw.min < 1 - 1e-6), opts = sep ? [.5, 1] : [.5, 1, 2, 5].filter(v => v >= zMin() - 1e-6 && v <= zMax() + 1e-6);
+    $("zooms").hidden = !sep;   // the bar stays hidden (pinch zooms) – it only shows where the 0.5× lens is a separate camera (Android)
     $("zooms").innerHTML = opts.map(v => `<button type="button" data-z="${v}" class="${Math.abs(v - zoom) < .05 ? "on" : ""}">${Math.abs(v - zoom) < .05 || !opts.some(o => Math.abs(o - zoom) < .05) && v === opts.reduce((a, b) => Math.abs(b - zoom) < Math.abs(a - zoom) ? b : a) ? (Math.round(zoom * 10) / 10) + "×" : (v === .5 ? ".5" : v)}</button>`).join("");
-    $("zooms").querySelectorAll("button").forEach(b => b.onclick = () => setZoom(+b.dataset.z, true));
+    $("zooms").querySelectorAll("button").forEach(b => b.onclick = () => { const z = +b.dataset.z; if (sep && z === .5) { if (!onWide) swapCam(true); } else if (sep && onWide && z === 1) swapCam(false); else setZoom(z, true); });
+    if (sep) $("zooms").querySelectorAll("button").forEach(b => { const z = +b.dataset.z; if (z === .5) { b.textContent = ".5"; b.classList.toggle("on", onWide); } else if (onWide) b.classList.remove("on"); });
   }
   let zT = 0;
   function setZoom(v, flashLbl) {
@@ -443,7 +447,7 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
     catch (e) { D("camera error: " + (e.name || "") + " " + (e.message || e)); stopCam(); show("start"); $("file").click(); }
   };
   $("close").onclick = () => { stopCam(); unlock(); show("start"); };
-  $("flip").onclick = async () => { facing = facing === "user" ? "environment" : "user"; try { await openCam(); } catch (e) { D("flip error: " + e.name); } };
+  $("flip").onclick = async () => { facing = facing === "user" ? "environment" : "user"; forceId = null; onWide = false; try { await openCam(); } catch (e) { D("flip error: " + e.name); } };
   $("flashB").onclick = () => { flashOn = !flashOn; flashUI(); if (facing === "environment") torchSet(flashOn); };
   const wait = ms => new Promise(r => setTimeout(r, ms));
   /* b87: sounds (beep on 2 and 1, a camera click) and the torch stays on for the back camera */
