@@ -194,7 +194,7 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
     else { g.disabled = false; g.textContent = "📸 פתחו מצלמה"; }
   }
   setInterval(() => { if (!$("start").hidden && !document.hidden) meLoad(); }, 5000);   // opened / closed at the stand → the phone follows without a reload
-  const PAGE_V = "88";
+  const PAGE_V = "89";
   const diag = []; const D = t => { diag.push(t); $("diag").textContent = diag.join("\n"); };
   const ua = navigator.userAgent || "", inApp = /FBAN|FBAV|Instagram|Line\/|WhatsApp|Snapchat|TikTok|MicroMessenger/i.test(ua);
   D("Pocket camera " + PAGE_V); D("secure: " + (window.isSecureContext ? "yes" : "NO") + " · getUserMedia: " + (navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? "yes" : "NO") + " · in-app: " + (inApp ? "yes" : "no"));
@@ -440,14 +440,14 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
   $("snap").onclick = async () => {
     if (busy || !video || !video.videoWidth) return; busy = true;
     const fl = $("flash"), cd = $("cd"); let c;
-    audio(); shutLoad(); cd.style.transform = rotated() ? "rotate(" + (rotSign > 0 ? 90 : -90) + "deg)" : ""; for (let i = 2; i > 0; i--) { cd.textContent = i; cd.style.opacity = 1; beep(i === 1 ? 1175 : 880, .15); await wait(1000); }   /* b87: a 2-second timer before every picture */
-    cd.style.opacity = 0;
+    audio(); shutLoad(); cd.style.transform = rotated() ? "rotate(" + (rotSign > 0 ? 90 : -90) + "deg)" : ""; const selfFl = flashOn && !(facing === "environment" && torch); for (let i = 2; i > 0; i--) { cd.textContent = i; cd.style.opacity = 1; if (selfFl && i === 1) { fl.style.transition = "opacity .3s"; fl.style.opacity = 1; cd.style.color = "#222"; cd.style.textShadow = "none"; } beep(i === 1 ? 1175 : 880, .15); await wait(1000); }   /* b89: the selfie light is already full when the picture is taken */   /* b87: a 2-second timer before every picture */
+    cd.style.opacity = 0; cd.style.color = ""; cd.style.textShadow = "";
     if (flashOn && facing === "environment" && torch) {   // the back camera's own light
       try { await track.applyConstraints({ advanced: [{ torch: true }] }); await wait(450); } catch (_) { }
       c = capture(); clickSnd();   /* the light stays on until the flash is switched off or the camera turned */
       fl.style.transition = "none"; fl.style.opacity = .8; requestAnimationFrame(() => { fl.style.transition = "opacity .35s"; fl.style.opacity = 0; });
     } else if (flashOn) {   // selfie: the screen itself lights the face (white screen, then the picture)
-      fl.style.transition = "none"; fl.style.opacity = 1; await wait(700); c = capture(); clickSnd(); await wait(60);
+      fl.style.transition = "none"; fl.style.opacity = 1; c = capture(); clickSnd(); await wait(250);
       fl.style.transition = "opacity .35s"; fl.style.opacity = 0;
     } else {
       c = capture(); clickSnd(); fl.style.transition = "none"; fl.style.opacity = .7; requestAnimationFrame(() => { fl.style.transition = "opacity .35s"; fl.style.opacity = 0; });
