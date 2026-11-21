@@ -49,7 +49,7 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
 .zooms button{min-width:40px;height:34px;border-radius:99px;border:0;background:none;color:#fff;font-weight:800;font-size:13px;padding:0 8px}
 .zooms button.on{background:rgba(255,255,255,.92);color:#111}
 .crow{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;direction:ltr}
-.crow .flipN{grid-column:3;justify-self:start;margin-left:26px;width:52px;height:52px}.crow .shutter{grid-column:2}
+.crow .flipN{grid-column:3;grid-row:1;justify-self:start;margin-left:26px;width:52px;height:52px}.crow .shutter{grid-column:2;grid-row:1}
 #cam #oTog{display:none!important}
 #camBrand{margin-left:auto;margin-right:auto}
 /* b84: portrait – the shutter in the middle of the bottom bar (reachable with one thumb); the orientation switch a small tile beside it */
@@ -80,7 +80,7 @@ details.diag pre{direction:ltr;text-align:left;white-space:pre-wrap;word-break:b
 #cd{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:900 34vmin/1 system-ui,sans-serif;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.65);opacity:0;pointer-events:none;z-index:60;transition:opacity .15s}
 #flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:50;transition:opacity .35s}
 #cam.rot #camBrand{display:none}   /* turned landscape view: room for ⟳ and ⇅ */
-#flashB{width:68px;height:68px}#flashB svg{width:50px;height:50px}
+#flashB{width:54px;height:54px}#flashB svg{width:30px;height:30px}
 #flashB.off{opacity:.55}#flashB.off svg{fill:none}
 #flashB.on{background:#ffd23d;color:#111}
 @media (orientation:landscape) and (max-height:560px){
@@ -205,7 +205,7 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
     else { g.disabled = false; g.textContent = "📸 פתחו מצלמה"; }
   }
   setInterval(() => { if (!$("start").hidden && !document.hidden) meLoad(); }, 5000);   // opened / closed at the stand → the phone follows without a reload
-  const PAGE_V = "101";
+  const PAGE_V = "103";
   const diag = []; const D = t => { diag.push(t); $("diag").textContent = diag.join("\n"); };
   const ua = navigator.userAgent || "", inApp = /FBAN|FBAV|Instagram|Line\/|WhatsApp|Snapchat|TikTok|MicroMessenger/i.test(ua);
   D("Pocket camera " + PAGE_V); D("secure: " + (window.isSecureContext ? "yes" : "NO") + " · getUserMedia: " + (navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? "yes" : "NO") + " · in-app: " + (inApp ? "yes" : "no"));
@@ -280,7 +280,7 @@ body.ld #start::after{content:"";position:absolute;top:45%;left:50%;width:54px;h
     let L, R, Tp, B;
     if (rot) { L = 88; R = 116; Tp = 6; B = 6; }          // view x = screen y: top bar on the left, controls on the right
     else if (land) { L = 74; R = 160; Tp = 6; B = 6; }
-    else { L = 6; R = 6; Tp = 92; B = 116; }
+    else { L = 6; R = 6; Tp = 92; B = 116 + ($("zooms").hidden ? 0 : 50); }   // + the .5 | 1× bar when it shows
     L *= dpr; R *= dpr; Tp *= dpr; B *= dpr;
     const aw = VW - L - R, ah = VH - Tp - B; let fw = aw, fh = fw / ar; if (fh > ah) { fh = ah; fw = fh * ar; }
     return { x: L + (aw - fw) / 2, y: Tp + (ah - fh) / 2, w: fw, h: fh };
