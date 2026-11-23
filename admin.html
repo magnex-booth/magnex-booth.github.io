@@ -112,6 +112,19 @@ button.pb.add.sel{border-color:var(--gftb);color:var(--gft);border-style:solid}
 .pc.gft{background:var(--gftbg);color:var(--gft);border:1px solid var(--gftb)}
 .opt{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;margin-top:6px;background:var(--card);font-size:14px}
 .opt input{width:18px;height:18px;margin:2px 0 0;flex:none}.opt.dis{opacity:.5}
+/* b112: ➕ צור קופון + 📎 proof of purchase */
+.mkb{width:100%;justify-content:center;font-weight:700;border:1.5px dashed var(--gftb);color:var(--gft);background:var(--gftbg);margin:2px 0 6px}
+.card.mk{border-color:var(--gftb)}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}
+.seg button{justify-content:center}.seg button.on{background:var(--gftbg);border-color:var(--gftb);color:var(--gft);font-weight:700}
+.mkc{font:800 24px ui-monospace,Menlo,monospace;direction:ltr;text-align:center;color:var(--gft);letter-spacing:1px;padding:10px;border:1px dashed var(--gftb);border-radius:12px;background:var(--gftbg);margin:8px 0;user-select:all;-webkit-user-select:all}
+.mkm{width:100%;min-height:210px;font-size:14px;line-height:1.5}
+.lbl2{font-size:12.5px;color:var(--mut);margin:8px 0 4px}
+.pfr{display:flex;gap:10px;align-items:center;margin-top:8px;padding:8px;border:1px dashed var(--line);border-radius:10px}
+.pfr img,.pfr .pdf{width:64px;height:64px;object-fit:cover;border-radius:8px;flex:none;cursor:zoom-in;background:var(--chip)}.pfr .pdf{display:grid;place-items:center;font-size:28px}
+.big{position:fixed;inset:0;z-index:20;background:#000e;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
+.big img{max-width:100%;max-height:80vh;border-radius:10px;background:#fff}
+.kv a{color:inherit}
 </style>
 </head>
 <body>
@@ -127,6 +140,7 @@ button.pb.add.sel{border-color:var(--gftb);color:var(--gft);border-style:solid}
 <main id="main">
   <div class="card" id="home" hidden style="border-color:var(--acc)"><b>✅ המכשיר אושר.</b> כדי שלא תצטרך לאשר שוב: לחץ עכשיו על כפתור השיתוף <b>⬆</b> ← <b>"הוסף למסך הבית"</b>, והשתמש מעכשיו רק באייקון החדש (את הישן אפשר למחוק). <button class="sm" onclick="this.parentNode.hidden=true">הבנתי</button></div>
   <div class="tiles" id="tiles"></div>
+  <div id="mkBox"></div>
   <input type="search" id="q" placeholder="חיפוש: שם, טלפון, קוד מחשב, קוד הטבה או משווק…">
   <h2 id="pH">בקשות ממתינות</h2>
   <div id="pend"><div class="empty">טוען…</div></div>
@@ -280,12 +294,104 @@ function bindActs() {
   document.querySelectorAll("button.del").forEach(b => armed(b, () => send({ a: "delete", code: b.dataset.c, product: b.dataset.p, name: b.dataset.n }, "🗑 נשלח – הרישיון יושבת ויימחק מהרשימה")));
   document.querySelectorAll("button.psh").forEach(b => armed(b, () => send({ a: "push", code: b.dataset.c, name: b.dataset.n }, "📤 נשלח – הרישיונות יגיעו אליו שוב")));
 }
+// b112: ➕ צור קופון – one single-use GFT code, made by the iMac (the same list as the 🎁 tab, 6 months from the approval).
+// Sent as the existing "gift" command with product "mkgift" (the Google script v17 already allows it).
+let MK = { open: false, mode: "reseller", res: "גיורא", name: "", phone: "", cid: "", at: 0, code: "", for: "", forPhone: "" };
+try { Object.assign(MK, JSON.parse(localStorage.getItem("mxadm_mk") || "{}"), { open: false }); } catch (e) { }
+const mkSave = () => { try { localStorage.setItem("mxadm_mk", JSON.stringify({ mode: MK.mode, res: MK.res, cid: MK.cid, at: MK.at, code: MK.code, for: MK.for, forPhone: MK.forPhone })); } catch (e) { } };
+function mkMsg(code, first) {
+  return [`שלום${first ? " " + first : ""} 👋`, "קיבלת קוד הטבה ל-MAGNEX – חצי שנה חינם 🎁", "", "קוד ההטבה שלך:", code, "",
+    "איך מפעילים:", "1. מתקינים את MAGNEX ופותחים אותה.",
+    "2. בחלון הרישיון (🔑 הפעלת MAGNEX) מקלידים את הקוד *רק* בשדה \"🎁 הכנס קוד הטבה\".",
+    "⚠️ לא בשדה \"קוד הרישיון שקיבלת\" – שם הקוד לא יעבוד.",
+    "3. ממלאים שם מלא, טלפון ומייל, ומצרפים צילום של החשבונית או אישור הרכישה (📎).",
+    "4. לוחצים \"📨 שלח בקשת הפעלה\" – MAGNEX יופעל לחצי שנה מרגע האישור.", "",
+    "הקוד לשימוש חד-פעמי, במחשב אחד.", "שאלות: 054-3156633"].join("\n");
+}
+async function copyTx(t) {
+  try { await navigator.clipboard.writeText(t); return toast("📋 הועתק"); } catch (e) { }
+  const ta = document.createElement("textarea"); ta.value = t; ta.setAttribute("readonly", ""); ta.style.cssText = "position:fixed;top:0;opacity:0"; document.body.appendChild(ta);
+  ta.select(); ta.setSelectionRange(0, t.length); let ok = false; try { ok = document.execCommand("copy"); } catch (e) { } ta.remove();
+  toast(ok ? "📋 הועתק" : "לא הצלחתי להעתיק – סמן והעתק ידנית");
+}
+function mkResult() {
+  if (!MK.cid) return "";
+  const c = cmdFor(x => x.id === MK.cid);
+  if (!MK.code && c && c.st === "done") { const m = /GFT-\d{4}-\d{4}/.exec(c.res || ""); if (m) { MK.code = m[0]; mkSave(); } }
+  if (MK.code) {
+    const first = MK.mode === "direct" ? String(MK.for || "").trim().split(/\s+/)[0] : "", txt = mkMsg(MK.code, first);
+    const to = MK.mode === "direct" && tel(MK.forPhone) ? wa(MK.forPhone) : "";
+    return `<div class="st ok">✓ נוצר קופון ${MK.mode === "direct" ? "ללקוח " + esc(MK.for) : "למשווק " + esc(MK.for)} · שימוש אחד · חצי שנה מרגע האישור</div>
+      <div class="mkc" id="mkCode">${esc(MK.code)}</div>
+      <div class="acts"><button class="pri" id="mkCp">📋 העתק קוד</button><button id="mkCpM">📋 העתק הודעה</button><a class="btn" id="mkWa" target="_blank" href="https://wa.me/${esc(to)}?text=${encodeURIComponent(txt)}">💬 שלח בוואטסאפ</a></div>
+      <div class="lbl2">ההודעה המוכנה ${MK.mode === "direct" ? "ללקוח" : "(גיורא מעביר אותה ללקוח)"}:</div>
+      <textarea class="mkm" id="mkTx" readonly>${esc(txt)}</textarea>
+      <div class="acts"><button class="sm ghost" id="mkNew">➕ קופון נוסף</button></div>`;
+  }
+  if (c && c.st === "error") return `<div class="st err">⚠ ${esc(c.res || "לא נוצר")} – אפשר לנסות שוב</div>`;
+  return stLine(c || { st: "new" });
+}
+function mkRender(full) {
+  const box = $("#mkBox"); if (!box) return;
+  if (!MK.open && !MK.cid) { box.innerHTML = `<button class="mkb" id="mkOpen">➕ צור קופון</button>`; $("#mkOpen").onclick = () => { MK.open = true; mkRender(true); }; return; }
+  if (!full && box.querySelector("#mkRes")) {   // only the result / status (never the fields the user is typing in)
+    const h = mkResult(); if ($("#mkRes").dataset.h !== h) { $("#mkRes").innerHTML = h; $("#mkRes").dataset.h = h; mkBindRes(); } return;
+  }
+  const busy = MK.cid && !MK.code && !(cmdFor(x => x.id === MK.cid)?.st === "error");
+  box.innerHTML = `<div class="card mk"><div class="row"><b style="flex:1">➕ צור קופון · 🎁 חצי שנה MAGNEX</b><button class="sm ghost" id="mkX">✕</button></div>
+    ${MK.cid ? "" : `<div class="seg"><button id="mkR" class="${MK.mode === "reseller" ? "on" : ""}">🤝 למשווק</button><button id="mkD" class="${MK.mode === "direct" ? "on" : ""}">👤 ללקוח ישיר</button></div>
+    ${MK.mode === "reseller" ? `<input type="text" id="mkN" value="${esc(MK.res)}" placeholder="שם המשווק (למשל גיורא)">`
+      : `<input type="text" id="mkN" value="${esc(MK.name)}" placeholder="שם הלקוח"><div style="margin-top:8px"><input type="tel" id="mkP" value="${esc(MK.phone)}" placeholder="טלפון הלקוח (לוואטסאפ · לא חובה)"></div>`}
+    <div class="mut" style="margin-top:6px">קוד אחד GFT-0000-0000 · שימוש אחד · MAGNEX לחצי שנה מרגע שתאשר את הבקשה. האיימק יוצר את הקוד (תוך חצי דקה).</div>
+    <div class="acts"><button class="pri" id="mkGo" ${busy ? "disabled" : ""}>🎁 צור קופון</button></div>`}
+    <div id="mkRes"></div></div>`;
+  $("#mkX").onclick = () => { MK.open = false; MK.cid = ""; MK.code = ""; mkSave(); mkRender(true); };
+  if ($("#mkR")) $("#mkR").onclick = () => { MK.mode = "reseller"; mkSave(); mkRender(true); };
+  if ($("#mkD")) $("#mkD").onclick = () => { MK.mode = "direct"; mkSave(); mkRender(true); };
+  if ($("#mkN")) $("#mkN").oninput = () => { if (MK.mode === "reseller") MK.res = $("#mkN").value; else MK.name = $("#mkN").value; };
+  if ($("#mkP")) $("#mkP").oninput = () => MK.phone = $("#mkP").value;
+  if ($("#mkGo")) $("#mkGo").onclick = async () => {
+    const nm = ($("#mkN").value || "").trim();
+    if (!nm) return toast(MK.mode === "reseller" ? "כתוב את שם המשווק" : "כתוב את שם הלקוח");
+    $("#mkGo").disabled = true;
+    try {
+      const cmd = { a: "gift", product: "mkgift", method: MK.mode === "direct" ? "direct" : "reseller", name: nm, phone: MK.mode === "direct" ? MK.phone : "", code: "", products: [] };
+      const r = await run("cmd", cmd);
+      if (!r.ok) { $("#mkGo").disabled = false; return toast(r.error || "לא נשלח"); }
+      LOCAL.push({ id: r.id, t: Date.now(), st: "new", a: "gift", body: cmd });
+      Object.assign(MK, { cid: r.id, at: Date.now(), code: "", for: nm, forPhone: cmd.phone }); mkSave();
+      toast("🎁 נשלח לאיימק – הקוד ייווצר תוך חצי דקה"); mkRender(true); setTimeout(load, 4000);
+    } catch (e) { $("#mkGo").disabled = false; toast("אין חיבור – נסה שוב"); }
+  };
+  const h = mkResult(); $("#mkRes").innerHTML = h; $("#mkRes").dataset.h = h; mkBindRes();
+}
+function mkBindRes() {
+  if ($("#mkCp")) $("#mkCp").onclick = () => copyTx(MK.code);
+  if ($("#mkCpM")) $("#mkCpM").onclick = () => copyTx($("#mkTx").value);
+  if ($("#mkNew")) $("#mkNew").onclick = () => { MK.cid = ""; MK.code = ""; MK.open = true; mkSave(); mkRender(true); };
+}
+// b112: 📎 the proof of purchase – small picture from the iMac's snapshot, the full one from the script (v18)
+async function pfBig(rid, th, kind) {
+  const o = document.createElement("div"); o.className = "big";
+  o.innerHTML = `${th ? `<img alt="">` : `<div style="font-size:60px">${kind === "pdf" ? "📄" : "🖼"}</div>`}<div class="mut" id="pfSt"><span class="spin">⏳</span> טוען את הקובץ המלא…</div><button id="pfX">✕ סגור</button>`;
+  if (th) o.querySelector("img").src = th;
+  document.body.appendChild(o); o.querySelector("#pfX").onclick = () => o.remove(); o.onclick = e => { if (e.target === o) o.remove(); };
+  try {
+    const r = await run("proof", { rid });
+    if (!r.ok) { o.querySelector("#pfSt").textContent = r.error === "unknown" ? "הקובץ המלא – באיימק (הסקריפט בגוגל עוד לא בגרסה 18)" : th ? "הקובץ המלא – באיימק, בלשונית 🎁" : "הקובץ לא נמצא"; return; }
+    if (/^data:application\/pdf/.test(r.data)) {
+      const bin = atob(r.data.split(",")[1]), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+      const u = URL.createObjectURL(new Blob([u8], { type: "application/pdf" }));
+      o.querySelector("#pfSt").innerHTML = `<a class="btn pri" target="_blank" href="${u}">📄 פתח את ה-PDF</a>`;
+    } else { let im = o.querySelector("img"); if (!im) { im = document.createElement("img"); o.insertBefore(im, o.firstChild); o.firstChild.nextSibling?.remove?.(); } im.src = r.data; o.querySelector("#pfSt").textContent = ""; }
+  } catch (e) { o.querySelector("#pfSt").textContent = "אין חיבור"; }
+}
 // b111: 🎁 benefit codes – waiting requests (the script's pending with m=coupon + the iMac's list), active, stopped, ended
 const isCp = r => r.method === "coupon" || /^GFT-?\d{4}/i.test(String(r.payer || ""));
 function giftList() {
   const G = (ST.snap?.gifts || []).slice(), P = ST.pending || [], pend = new Set(P.map(r => r.id)), have = new Set(G.map(g => g.rid).filter(Boolean));
-  const out = G.filter(g => g.state !== "waiting" || !g.rid || pend.has(g.rid));
-  P.filter(isCp).forEach(r => { if (!have.has(r.id)) out.push({ code: r.code, name: r.name || "", phone: r.phone || "", email: r.email || "", coupon: String(r.coupon || r.payer || "").toUpperCase(), reseller: "", state: "waiting", rid: r.id, items: [], until: "", daysLeft: 0, months: 6 }); });
+  const out = G.filter(g => g.state !== "waiting" || !g.rid || pend.has(g.rid)).map(g => g.rid ? Object.assign({}, g, { req: P.find(r => r.id === g.rid) || null }) : g);
+  P.filter(isCp).forEach(r => { if (!have.has(r.id)) out.push({ code: r.code, name: r.name || "", phone: r.phone || "", email: r.email || "", coupon: String(r.coupon || r.payer || "").toUpperCase(), reseller: "", state: "waiting", rid: r.id, items: [], until: "", daysLeft: 0, months: 6, req: r }); });
   const ord = { waiting: 0, active: 1, stopped: 2, ended: 3 };
   return out.sort((a, b) => (ord[a.state] ?? 9) - (ord[b.state] ?? 9));
 }
@@ -297,6 +403,28 @@ function prodRow(key, code, its, mainOk, mainHtml, activeHtml) {
   its.forEach(it => { if (it.p !== "gift" && it.p !== "?") h += activeHtml ? activeHtml(it) : `<span class="pb ${it.rev ? "off" : "on"}">${it.rev ? "⛔" : "✓"} ${esc(PS[it.p] || PN[it.p] || it.p)} · ${it.rev ? "מושבת" : "פעיל"}</span>`; });
   list.filter(p => !have.includes(p)).forEach(p => { h += `<button class="pb add${PANEL[key] === "p:" + p ? " sel" : ""}" data-key="${esc(key)}" data-c="${esc(code)}" data-k="p:${p}" ${mainOk ? "" : "disabled"}>+ ${esc(PS[p] || p)}</button>`; });
   return `<div class="prw"><div class="lb">תוכנות${mainOk ? "" : " · תוספים רק כשהרישיון הראשי פעיל"}</div><div class="pbs">${h}</div></div>`;
+}
+function gDet(g) {   // b112: everything about the customer + the request
+  const r = g.req || {}, ph = g.phone || r.phone || "", em = g.email || r.email || "";
+  const sent = r.t ? new Date(+r.t).toLocaleString("he-IL", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : g.sent || "";
+  const ver = r.ver || g.ver || "", os = r.os || g.os || "", host = r.host || g.host || "";
+  const rs = g.reseller === "ישיר" ? "ישיר" + (g.to ? " · " + g.to : "") : g.reseller;
+  let h = `<div class="kv"><span>קוד הטבה</span><bdi class="cpc">${esc(g.coupon || "—")}</bdi><span>משווק</span><b>${esc(rs || "—")}</b><span>מחשב</span><bdi class="code">${esc(g.code)}</bdi>`;
+  if (g.state === "waiting") {
+    h += `<span>טלפון</span>${tel(ph) ? `<span><a href="tel:${esc(tel(ph))}" dir="ltr">${esc(ph)}</a> · <a href="https://wa.me/${esc(wa(ph))}" target="_blank">💬 WhatsApp</a></span>` : "<span>—</span>"}`;
+    h += `<span>מייל</span>${em ? `<a href="mailto:${esc(em)}" dir="ltr">${esc(em)}</a>` : "<span>—</span>"}`;
+    if (sent) h += `<span>נשלחה</span><span>${esc(sent)}</span>`;
+    if (ver) h += `<span>גרסה</span><bdi dir="ltr">${esc(ver)}${r.app && r.app !== "magnex" ? " · " + esc(r.app) : ""}</bdi>`;
+    if (os) h += `<span>מערכת</span><bdi dir="ltr">${esc(os)}</bdi>`;
+    if (host) h += `<span>שם המחשב</span><bdi dir="ltr">${esc(host)}</bdi>`;
+  }
+  h += `</div>`;
+  if (g.state === "waiting") {
+    const has = g.th || g.pf || r.pf;
+    h += has ? `<div class="pfr" data-rid="${esc(g.rid || "")}" data-k="${esc(g.pfKind || (r.pft === "application/pdf" ? "pdf" : ""))}">${g.th ? `<img alt="" src="${esc(g.th)}">` : `<div class="pdf">${(g.pfKind === "pdf" || r.pft === "application/pdf") ? "📄" : "🖼"}</div>`}<div><b>📎 צורף אישור רכישה</b><div class="mut">נגיעה להגדלה</div></div></div>`
+      : `<div class="warn">⚠ לא צורף אישור רכישה</div>`;
+  }
+  return h;
 }
 function giftCard(g) {
   const key = "g:" + g.code, [stT, stC] = GST[g.state] || ["?", "e"];
@@ -320,7 +448,7 @@ function giftCard(g) {
   return `<div class="card gft${g.state === "ended" ? " end" : ""}" data-g="${esc(g.code)}">
     <div class="row"><span class="gp">🎁 ${!g.months || +g.months === 6 ? "חצי שנה" : esc(g.months) + " חודשים"}</span><span class="stp ${stC}">${stT}</span></div>
     <div class="nm" style="margin-top:6px">${esc(g.name || "—")}</div>
-    <div class="kv"><span>קוד הטבה</span><bdi class="cpc">${esc(g.coupon || "—")}</bdi><span>משווק</span><b>${esc(g.reseller || "—")}</b><span>מחשב</span><bdi class="code">${esc(g.code)}</bdi></div>
+    ${gDet(g)}
     <div class="mut" style="margin-top:6px;font-size:13.5px">${when}</div>
     ${g.err ? `<div class="warn">⚠ ${esc(g.err)}</div>` : ""}${(g.miss || []).length ? `<div class="warn">⚠ חסרים פרטים: ${esc(g.miss.join(", "))}</div>` : ""}
     ${c ? stLine(c) : ""}
@@ -376,6 +504,8 @@ function render() {
   const G = GL.filter(g => match(g.name + g.code + (g.phone || "") + (g.email || "") + (g.coupon || "") + (g.reseller || "")));
   $("#gH").textContent = `🎁 רישיונות מתנה · קוד הטבה${GL.length ? " · " + GL.length : ""}`;
   $("#gift").innerHTML = G.length ? G.map(giftCard).join("") : `<div class="empty">${GL.length ? "לא נמצא" : S ? "אין עדיין רישיונות מתנה" : ""}</div>`;
+  $("#gift").querySelectorAll(".pfr[data-rid]").forEach(el => { const im = el.querySelector("img"); el.onclick = () => el.dataset.rid ? pfBig(el.dataset.rid, im ? im.src : "", el.dataset.k) : null; });
+  mkRender(false);
   $("#gift").querySelectorAll("button.gstop").forEach(b => armed(b, () => send({ a: "revoke", code: b.dataset.c, product: "gift", name: b.dataset.n, reason: "מהטלפון" }, "⏸ נשלח לאיימק – ההטבה תיעצר והימים יוקפאו")));
   $("#gift").querySelectorAll("button.grest").forEach(b => armed(b, () => send({ a: "restore", code: b.dataset.c, product: "gift", name: b.dataset.n }, "↩ נשלח לאיימק – ההטבה תוחזר לימים שנשארו")));
   $("#gift").querySelectorAll("button.gok").forEach(b => armed(b, () => send({ a: "approve", rid: b.dataset.rid, code: b.dataset.c, name: b.dataset.n, products: ["magnex"] }, "✅ נשלח לאיימק – MAGNEX לחצי שנה מהאישור")));
