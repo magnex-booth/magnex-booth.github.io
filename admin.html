@@ -43,6 +43,13 @@ button.pri{background:linear-gradient(90deg,#e9283f,#ff8a1f);border:0;color:#fff
 button.ghost{background:transparent}
 button:disabled{opacity:.5}
 button.arm{background:var(--bad);color:#fff;border-color:var(--bad)}
+button.kill{color:var(--badt);border-color:color-mix(in srgb,var(--bad) 50%,var(--line));background:color-mix(in srgb,var(--bad) 10%,var(--chip));font-weight:600;white-space:nowrap}
+button.kill.arm{background:var(--bad);color:#fff;border-color:var(--bad)}
+button.kres{white-space:nowrap}
+.card.off{border-color:color-mix(in srgb,var(--bad) 50%,var(--line));background:color-mix(in srgb,var(--bad) 6%,var(--card))}
+.cfm{margin-top:8px;padding:9px 11px;border-radius:10px;font-size:13.5px;line-height:1.5;color:var(--badt);background:color-mix(in srgb,var(--bad) 12%,var(--card));border:1px solid color-mix(in srgb,var(--bad) 45%,var(--line))}
+.cfm.rs{color:var(--okt);background:color-mix(in srgb,var(--ok) 12%,var(--card));border-color:color-mix(in srgb,var(--ok) 45%,var(--line))}
+.koff{display:inline-flex;align-items:center;font-size:12px;font-weight:700;border-radius:999px;padding:3px 9px;color:var(--badt);background:color-mix(in srgb,var(--bad) 18%,transparent);white-space:nowrap}
 .pay{margin:8px 0 4px;font-size:14px}
 .pay b{font-size:16px}
 .links{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
@@ -457,6 +464,36 @@ function giftCard(g) {
     ${panel(key, g.code, g.name, (g.items || []).map(x => x.p).concat(["magnex"]), g, true)}
   </div>`;
 }
+// b113: 🛑 השבת – the whole computer (paid or trial), two taps; the state of the first tap survives the 12-second refresh
+const KILL_MSG = "להשבית את הרישיון? התוכנה תיעצר במחשב הזה בחיבור הבא לאינטרנט. אפשר לשחזר.";
+const KRES_MSG = "לשחזר את הרישיון? התוכנה תיפתח שוב במחשב הזה בחיבור הבא לאינטרנט.";
+let KARM = { k: "", until: 0 };
+function killOff(code) { return (ST?.snap?.off || []).includes(code); }
+function killBtn(code, name) {
+  const pc = cmdFor(x => (x.a === "revoke" || x.a === "restore") && x.body?.code === code && x.body?.product === "*" && (x.st === "new" || x.st === "run"));
+  if (pc) return `<span class="pc wait">⏳ ${pc.a === "revoke" ? "משבית…" : "משחזר…"}</span>`;
+  const off = killOff(code), k = (off ? "r:" : "k:") + code, arm = KARM.k === k && Date.now() < KARM.until;
+  return off ? `<span class="koff">⛔ מושבת</span><button class="sm kres${arm ? " arm" : ""}" data-kc="${esc(code)}" data-kn="${esc(name || "")}" data-ko="1">${arm ? "לחץ שוב לשחזור" : "↩ שחזר"}</button>`
+    : `<button class="sm kill${arm ? " arm" : ""}" data-kc="${esc(code)}" data-kn="${esc(name || "")}" data-ko="0">${arm ? "לחץ שוב להשבתה" : "🛑 השבת"}</button>`;
+}
+function killCfm(code) {
+  const off = killOff(code), k = (off ? "r:" : "k:") + code;
+  return KARM.k === k && Date.now() < KARM.until ? `<div class="cfm${off ? " rs" : ""}">${off ? KRES_MSG : KILL_MSG}</div>` : "";
+}
+function bindKill() {
+  document.querySelectorAll("button[data-kc]").forEach(b => b.onclick = ev => {
+    ev.stopPropagation();
+    const code = b.dataset.kc, off = b.dataset.ko === "1", k = (off ? "r:" : "k:") + code;
+    if (KARM.k === k && Date.now() < KARM.until) {
+      KARM = { k: "", until: 0 };
+      send(off ? { a: "restore", code, product: "*", name: b.dataset.kn } : { a: "revoke", code, product: "*", name: b.dataset.kn, reason: "🛑 השבתה מהטלפון" },
+        off ? "↩ נשלח לאיימק – הרישיון ישוחזר" : "🛑 נשלח לאיימק – הרישיון יושבת");
+      return;
+    }
+    KARM = { k, until: Date.now() + 6000 }; render();
+    setTimeout(() => { if (KARM.k === k && Date.now() >= KARM.until) { KARM = { k: "", until: 0 }; render(); } }, 6100);
+  });
+}
 function render() {
   if (!ST) return;
   const on = Date.now() - ST.hb < 120000;
@@ -532,8 +569,8 @@ function render() {
     const gchip = its.find(x => x.p === "gift");
     const last = cmdFor(x => x.body?.code === c.code && x.a !== "approve" && x.a !== "reject" && Date.now() - x.t < 600000);
     const open = OPEN.has(c.code);
-    return `<div class="card">
-      <div class="row det-b" data-c="${esc(c.code)}" style="cursor:pointer"><span class="nm" style="flex:1">${esc(c.name || "—")}</span>${gm ? `<span class="gp">🎁</span>` : ""}<button class="sm">${open ? "▲ סגור" : "👤 פרטים"}</button></div>
+    return `<div class="card${killOff(c.code) ? " off" : ""}">
+      <div class="row det-b" data-c="${esc(c.code)}" style="cursor:pointer"><span class="nm" style="flex:1">${esc(c.name || "—")}</span>${gm ? `<span class="gp">🎁</span>` : ""}${killBtn(c.code, c.name)}<button class="sm">${open ? "▲ סגור" : "👤 פרטים"}</button></div>${killCfm(c.code)}
       ${open ? `<div class="code">${esc(c.code)}</div>
       ${prodRow(c.code, c.code, its.filter(x => x.p !== "gift"), mainOk, gchip ? chip(gchip) : "", chip)}${last ? stLine(last) : ""}
       ${actBar(c.code, c.code)}${panel(c.code, c.code, c.name, its.map(x => x.p), c, false)}
@@ -547,14 +584,14 @@ function render() {
   $("#tH").hidden = !T.length; $("#tH").textContent = `🕒 בתקופת ניסיון · ${T.length}`;
   // b150: the days count down here too – the customer's MAGNEX reports only when it is open and online
   T.forEach(t => { if (t.st === "trial") { t.days = Math.max(0, (+t.days || 0) - Math.floor((Date.now() - (+t.last || Date.now())) / 86400000)); if (!t.days) t.st = "expired"; } });
-  $("#trial").innerHTML = T.map(t => { const open = OPEN.has("t:" + t.code); return `<div class="card"><div class="row det-b" data-c="t:${esc(t.code)}" style="cursor:pointer"><span class="nm" style="flex:1">${esc(t.name || (t.app === "booth-solo" ? "MAGNEX Booth Station" : "MAGNEX"))}</span><span class="pc ${t.st === "trial" ? "wait" : "rv"}">${t.st === "trial" ? `🕒 נותרו ${t.days} ימים` : "הניסיון נגמר"}</span><button class="sm">${open ? "▲ סגור" : "👤 פרטים"}</button></div>
+  $("#trial").innerHTML = T.map(t => { const open = OPEN.has("t:" + t.code); return `<div class="card${killOff(t.code) ? " off" : ""}"><div class="row det-b" data-c="t:${esc(t.code)}" style="cursor:pointer"><span class="nm" style="flex:1">${esc(t.name || (t.app === "booth-solo" ? "MAGNEX Booth Station" : "MAGNEX"))}</span>${killOff(t.code) ? "" : `<span class="pc ${t.st === "trial" ? "wait" : "rv"}">${t.st === "trial" ? `🕒 נותרו ${t.days} ימים` : "הניסיון נגמר"}</span>`}${killBtn(t.code, t.name)}<button class="sm">${open ? "▲ סגור" : "👤 פרטים"}</button></div>${killCfm(t.code)}
     ${open ? `<div class="code">${esc(t.code)}</div><div class="mut">${t.app === "booth-solo" ? "MAGNEX Booth Station" : "MAGNEX"} ${esc(t.ver)} · הותקן ${new Date(t.first).toLocaleDateString("he-IL")} · נראה ${ago(t.last)}</div>${contact(t.phone, t.email)}
     ${(() => { const l = cmdFor(x => x.body?.code === t.code && Date.now() - x.t < 600000); return l ? stLine(l) : ""; })()}
     <div class="acts"><button class="sm ext" data-c="${esc(t.code)}" data-n="${esc(t.name || "")}" data-l="${t.st === "trial" ? +t.days || 0 : 0}">➕ עוד 14 יום ניסיון</button><button class="sm opn" data-key="${esc(t.code)}" data-c="${esc(t.code)}" data-k="addprod">💳 הפעל – שילם</button><button class="sm opn" data-key="${esc(t.code)}" data-c="${esc(t.code)}" data-k="gift">🎁 הפעל במתנה</button><button class="sm ghost fgt" data-c="${esc(t.code)}">🙈 הסתר</button></div>
     ${panel(t.code, t.code, t.name || "", [], t, false)}` : ""}</div>`; }).join("");
-  $("#trial").querySelectorAll(".det-b").forEach(b => b.onclick = (ev) => { if (ev.target.closest(".pnl,.acts,a,input,textarea,select")) return; const k = b.dataset.c; OPEN.has(k) ? OPEN.delete(k) : OPEN.add(k); render(); });   // trials fold like the customers
-  $("#cust").querySelectorAll(".det-b").forEach(b => b.onclick = (ev) => { if (ev.target.closest(".pnl,.acts,.chips,.prw,a,input,textarea,select")) return; const k = b.dataset.c; OPEN.has(k) ? OPEN.delete(k) : OPEN.add(k); render(); });
-  bindActs();
+  $("#trial").querySelectorAll(".det-b").forEach(b => b.onclick = (ev) => { if (ev.target.closest(".pnl,.acts,a,input,textarea,select,button[data-kc]")) return; const k = b.dataset.c; OPEN.has(k) ? OPEN.delete(k) : OPEN.add(k); render(); });   // trials fold like the customers
+  $("#cust").querySelectorAll(".det-b").forEach(b => b.onclick = (ev) => { if (ev.target.closest(".pnl,.acts,.chips,.prw,a,input,textarea,select,button[data-kc]")) return; const k = b.dataset.c; OPEN.has(k) ? OPEN.delete(k) : OPEN.add(k); render(); });
+  bindActs(); bindKill();
   $("#cust").querySelectorAll("button.rv,button.rs").forEach(b => {
     const c = L[+b.dataset.i], p = b.dataset.p, on = b.classList.contains("rv");
     armed(b, () => send({ a: on ? "revoke" : "restore", code: c.code, product: p, name: c.name, reason: "מהטלפון" }, p === "gift" ? (on ? "⏸ נשלח לאיימק – ההטבה תיעצר" : "↩ נשלח לאיימק – ההטבה תוחזר") : on ? "⛔ נשלח לאיימק – הרישיון יושבת" : "↩ נשלח לאיימק – הרישיון יוחזר"));
