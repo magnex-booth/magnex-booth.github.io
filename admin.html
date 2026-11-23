@@ -9,15 +9,18 @@
 <meta name="theme-color" content="#14121a">
 <link rel="apple-touch-icon" href="admin-icon.png">
 <title>MAGNEX · רישיונות</title>
+<script>/* b111: day / night – default dark, remembered on this phone */try{if(localStorage.getItem("mxadm_thm")==="light")document.documentElement.classList.add("day")}catch(e){}</script>
 <style>
-:root{--bg:#14121a;--card:#1d1a26;--line:#2f2a3b;--ink:#f3f1f8;--mut:#9a93ab;--chip:#2a2535;--ok:#15a06a;--okt:#5fd6a2;--bad:#e5484d;--badt:#ff8a92;--acc:#ff8a1f}
-@media (prefers-color-scheme:light){:root{--bg:#f4f3f7;--card:#fff;--line:#e3e0ea;--ink:#1b1726;--mut:#6d6680;--chip:#efedf4;--okt:#0f7a51;--badt:#b3202d}}
+:root{--bg:#14121a;--card:#1d1a26;--line:#2f2a3b;--ink:#f3f1f8;--mut:#9a93ab;--chip:#2a2535;--ok:#15a06a;--okt:#5fd6a2;--bad:#e5484d;--badt:#ff8a92;--acc:#ff8a1f;--gft:#8fbcf5;--gftb:#4a8ce0;--gftbg:#14233f;--amb:#ffb648;--ambbg:#3a2a12;--gry:#aaa5b6;--grybg:#2a2733}
+/* b111: the light theme (white cards, navy text) – the toggle in the header, not the phone setting */
+html.day{--bg:#f3f5fa;--card:#fff;--line:#dfe3ee;--ink:#16245c;--mut:#5e6886;--chip:#eef1f7;--okt:#0f7a51;--badt:#b3202d;--acc:#d96a00;--gft:#1d5db0;--gftb:#4a8ce0;--gftbg:#e6f0fd;--amb:#9a5a00;--ambbg:#fff1d9;--gry:#5e6886;--grybg:#eceef3}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;-webkit-text-size-adjust:100%}
 header{position:sticky;top:0;z-index:5;background:var(--bg);padding:14px 16px 10px;border-bottom:1px solid var(--line);padding-top:max(14px,env(safe-area-inset-top))}
 .top{display:flex;align-items:center;gap:10px}
-.top h1{font-size:19px;margin:0;flex:1}
-.logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#e9283f,#ff8a1f);display:grid;place-items:center;font-size:17px}
+.top .wm{height:34px;width:auto;display:block;flex:none}
+.top .wm.l{display:none}html.day .top .wm.d{display:none}html.day .top .wm.l{display:block}
+.top .lbl{font-size:18px;font-weight:700;flex:1;white-space:nowrap;border-inline-start:1px solid var(--line);padding-inline-start:10px}
 .pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--mut);margin-top:6px}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--mut)}
 .dot.on{background:var(--ok)}.dot.off{background:var(--acc)}
@@ -61,11 +64,59 @@ textarea{min-height:70px;resize:vertical}
 .toast{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);background:#000c;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw;text-align:center}
 .toast.on{opacity:1}
 .spin{animation:sp 1s linear infinite;display:inline-block}@keyframes sp{to{transform:rotate(360deg)}}
+/* b111: the day / night toggle – the same as the computer app (app/index.html, build 165) */
+.thm-tgl{position:relative;flex:none;width:58px;height:30px;padding:0;margin:0 2px;border-radius:999px;cursor:pointer;overflow:hidden;touch-action:none;border:1px solid rgba(255,255,255,.14);
+  background:radial-gradient(1.3px 1.3px at 20% 32%,#fff 55%,transparent 65%),radial-gradient(1px 1px at 34% 70%,#e8ecff 55%,transparent 65%),radial-gradient(1px 1px at 12% 64%,#cfd8ff 55%,transparent 65%),radial-gradient(1.2px 1.2px at 44% 22%,#fff 55%,transparent 65%),linear-gradient(135deg,#17123a,#3b2a72);
+  box-shadow:inset 0 2px 7px rgba(0,0,0,.6),inset 0 -1px 0 rgba(255,255,255,.07);transition:background .45s,box-shadow .45s,border-color .45s}
+.thm-tgl.day{background:radial-gradient(9px 6px at 72% 66%,rgba(255,255,255,.85) 60%,transparent 70%),radial-gradient(7px 5px at 82% 58%,rgba(255,255,255,.8) 60%,transparent 70%),linear-gradient(135deg,#8fcbff,#ffe39b);border-color:rgba(0,0,0,.1);box-shadow:inset 0 2px 7px rgba(30,60,110,.35),inset 0 -1px 0 rgba(255,255,255,.5)}
+.thm-tgl:focus-visible{outline:2px solid #2fc4bd;outline-offset:2px}
+.thm-knob{position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;pointer-events:none;
+  background:linear-gradient(160deg,rgba(255,255,255,.6),rgba(255,255,255,.14));-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+  box-shadow:0 2px 6px rgba(0,0,0,.4),inset 0 1px 1px rgba(255,255,255,.9),inset 0 -3px 5px rgba(0,0,0,.2),0 0 14px 3px rgba(255,61,154,.6);
+  transform:translateX(28px);transition:transform .42s cubic-bezier(.34,1.56,.64,1),box-shadow .45s}
+.thm-tgl.day .thm-knob{transform:translateX(0);box-shadow:0 2px 6px rgba(80,60,0,.3),inset 0 1px 1px rgba(255,255,255,.95),inset 0 -3px 5px rgba(160,110,0,.18),0 0 14px 3px rgba(255,190,40,.65)}
+.thm-tgl.drag .thm-knob{transition:none}
+.thm-knob svg{width:15px;height:15px;position:absolute;transition:opacity .3s,transform .45s}
+.thm-knob .k-sun{opacity:0;transform:rotate(-90deg) scale(.6)}.thm-tgl.day .thm-knob .k-sun{opacity:1;transform:none}
+.thm-tgl.day .thm-knob .k-moon{opacity:0;transform:rotate(90deg) scale(.6)}
+@media (prefers-reduced-motion:reduce){.thm-knob,.thm-knob svg,.thm-tgl{transition:none}}
+html,body,.card,header{transition:background-color .3s,color .3s,border-color .3s}
+/* b111: status tiles, 🎁 rubric, 'תוכנות' row */
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:2px 0 10px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 4px;text-align:center;cursor:pointer;min-width:0}
+.tile b{display:block;font-size:20px;line-height:1.2}
+.tile span{font-size:11.5px;color:var(--mut);white-space:nowrap}
+.tile.gft{border-color:var(--gftb);background:var(--gftbg)}.tile.gft b,.tile.gft span{color:var(--gft)}
+h2.gh{color:var(--gft)}
+.card.gft{border-color:color-mix(in srgb,var(--gftb) 60%,var(--line));background:color-mix(in srgb,var(--gftbg) 75%,var(--card))}
+.card.gft.end{border-style:dashed}
+.gp{display:inline-flex;align-items:center;font-size:12.5px;font-weight:700;border-radius:999px;padding:3px 10px;color:var(--gft);background:var(--gftbg);border:1px solid var(--gftb)}
+.stp{display:inline-flex;font-size:12.5px;font-weight:700;border-radius:999px;padding:3px 10px}
+.stp.a{color:var(--okt);background:color-mix(in srgb,var(--ok) 18%,transparent)}
+.stp.w{color:var(--amb);background:var(--ambbg)}
+.stp.s{color:var(--amb);background:transparent;border:1px dashed var(--amb)}
+.stp.e{color:var(--gry);background:var(--grybg)}
+.cpc{font:700 13.5px ui-monospace,Menlo,monospace;direction:ltr;color:var(--gft)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:13.5px;margin-top:6px;align-items:baseline}.kv>span{color:var(--mut)}
+.warn{color:var(--amb);font-size:13px;margin-top:6px}
+.prw{margin-top:10px;border-top:1px dashed var(--line);padding-top:8px}
+.prw .lb{font-size:12.5px;color:var(--mut);margin-bottom:6px}
+.pbs{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pb{display:inline-flex;align-items:center;font-size:12.5px;font-weight:600;border-radius:9px;padding:5px 9px}
+.pb.on{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--okt)}
+.pb.gon{background:var(--gftbg);color:var(--gft);border:1px solid var(--gftb)}
+.pb.off{background:var(--grybg);color:var(--gry)}
+.pb.wt{color:var(--amb);border:1px dashed var(--amb)}
+button.pb.add{background:transparent;border:1.5px dashed color-mix(in srgb,var(--mut) 60%,transparent);color:var(--mut);font-weight:600}
+button.pb.add.sel{border-color:var(--gftb);color:var(--gft);border-style:solid}
+.pc.gft{background:var(--gftbg);color:var(--gft);border:1px solid var(--gftb)}
+.opt{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;margin-top:6px;background:var(--card);font-size:14px}
+.opt input{width:18px;height:18px;margin:2px 0 0;flex:none}.opt.dis{opacity:.5}
 </style>
 </head>
 <body>
 <header>
-  <div class="top"><div class="logo">🔑</div><h1>MAGNEX · רישיונות</h1><button class="sm ghost" id="rf" aria-label="רענון">🔄</button></div>
+  <div class="top"><img class="wm d" alt="MAGNEX print lazy" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjExMCAzMCA4MDQgMjkwIiB3aWR0aD0iODA0IiBoZWlnaHQ9IjI5MCI+PGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0ibWFnIiB4MT0iMCIgeTE9IjEiIHgyPSIxIiB5Mj0iMCI+CiAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZTkyODNmIi8+PHN0b3Agb2Zmc2V0PSIuNDUiIHN0b3AtY29sb3I9IiNmNDUxMmYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNmZmEyMWYiLz48L2xpbmVhckdyYWRpZW50Pgo8bGluZWFyR3JhZGllbnQgaWQ9Im1hZ1NoYWRlIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmZmIiBzdG9wLW9wYWNpdHk9Ii4zNSIvPjxzdG9wIG9mZnNldD0iLjUiIHN0b3AtY29sb3I9IiNmZmYiIHN0b3Atb3BhY2l0eT0iMCIvPjwvbGluZWFyR3JhZGllbnQ+CjxsaW5lYXJHcmFkaWVudCBpZD0idGlwIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMCI+CiAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjY2ZkOGU2Ii8+PHN0b3Agb2Zmc2V0PSIuNSIgc3RvcC1jb2xvcj0iI2ZmZmZmZiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzlmYjBjOCIvPjwvbGluZWFyR3JhZGllbnQ+CjxsaW5lYXJHcmFkaWVudCBpZD0icHJGcm9udCIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjAiPgogIDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzJhNmZlOCIvPjxzdG9wIG9mZnNldD0iLjM1IiBzdG9wLWNvbG9yPSIjMThiM2M0Ii8+PHN0b3Agb2Zmc2V0PSIuNyIgc3RvcC1jb2xvcj0iIzZjYzk0YSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2Y2YzUzMSIvPjwvbGluZWFyR3JhZGllbnQ+CjxsaW5lYXJHcmFkaWVudCBpZD0icHJUb3AiIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIwIj4KICA8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiM0ZjhmZjAiLz48c3RvcCBvZmZzZXQ9Ii40NSIgc3RvcC1jb2xvcj0iIzNmZDBjNiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2I5ZTA1YSIvPjwvbGluZWFyR3JhZGllbnQ+CjxsaW5lYXJHcmFkaWVudCBpZD0icHJTaWRlIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CiAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjYjZjOTM1Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjN2M5YTI0Ii8+PC9saW5lYXJHcmFkaWVudD4KPGxpbmVhckdyYWRpZW50IGlkPSJwckluIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMGQzYTZiIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMWI2YThhIi8+PC9saW5lYXJHcmFkaWVudD4KPGxpbmVhckdyYWRpZW50IGlkPSJwclNoaW5lIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmZmIiBzdG9wLW9wYWNpdHk9Ii40NSIvPjxzdG9wIG9mZnNldD0iLjQiIHN0b3AtY29sb3I9IiNmZmYiIHN0b3Atb3BhY2l0eT0iMCIvPjwvbGluZWFyR3JhZGllbnQ+CjxsaW5lYXJHcmFkaWVudCBpZD0ic2t5QSIgeDE9IjAiIHkxPSIwIiB4Mj0iMCIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzVlYzhmMiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzJmODZkNiIvPjwvbGluZWFyR3JhZGllbnQ+CjxsaW5lYXJHcmFkaWVudCBpZD0ic2t5QiIgeDE9IjAiIHkxPSIwIiB4Mj0iMCIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzdmZDNmZiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2M4ZjBmZiIvPjwvbGluZWFyR3JhZGllbnQ+CjxsaW5lYXJHcmFkaWVudCBpZD0ic2t5QyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI2ZmN2EzZCIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2UyMzA2YiIvPjwvbGluZWFyR3JhZGllbnQ+CjxsaW5lYXJHcmFkaWVudCBpZD0iZ0ciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICA8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZjhhMWYiLz48c3RvcCBvZmZzZXQ9Ii41IiBzdG9wLWNvbG9yPSIjZTkyODNmIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMmE1YmQ3Ii8+PC9saW5lYXJHcmFkaWVudD4KPGxpbmVhckdyYWRpZW50IGlkPSJnWCIgeDE9IjAiIHkxPSIxIiB4Mj0iMSIgeTI9IjAiPgogIDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzFmYjVhNiIvPjxzdG9wIG9mZnNldD0iLjQiIHN0b3AtY29sb3I9IiM3Y2M5NDMiLz48c3RvcCBvZmZzZXQ9Ii43IiBzdG9wLWNvbG9yPSIjZmZjNTMxIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZmY2YTJiIi8+PC9saW5lYXJHcmFkaWVudD4KPGxpbmVhckdyYWRpZW50IGlkPSJ0aWxlIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmZmZmZmIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZjFmM2Y3Ii8+PC9saW5lYXJHcmFkaWVudD4KPGZpbHRlciBpZD0idGlsZVNoIiB4PSItMjAlIiB5PSItMjAlIiB3aWR0aD0iMTQwJSIgaGVpZ2h0PSIxNDAlIj4KICA8ZmVEcm9wU2hhZG93IGR4PSIwIiBkeT0iMTQiIHN0ZERldmlhdGlvbj0iMjIiIGZsb29kLWNvbG9yPSIjMWIyNDQwIiBmbG9vZC1vcGFjaXR5PSIuMTgiLz48L2ZpbHRlcj4KPGZpbHRlciBpZD0ic29mdCIgeD0iLTMwJSIgeT0iLTMwJSIgd2lkdGg9IjE2MCUiIGhlaWdodD0iMTYwJSI+PGZlRHJvcFNoYWRvdyBkeD0iMCIgZHk9IjgiIHN0ZERldmlhdGlvbj0iMTAiIGZsb29kLWNvbG9yPSIjMGIxZjRkIiBmbG9vZC1vcGFjaXR5PSIuMjIiLz48L2ZpbHRlcj4KPC9kZWZzPjxwYXRoIGQ9Ik0yNjguODU0MDAwMDAwMDAwMDQgNjkuMjU2MDAwMDAwMDAwMDFWMTkwLjBIMjM5LjQ0MjAwMDAwMDAwMDA0VjExNy41ODgwMDAwMDAwMDAwMUwyMTIuNDM4MDAwMDAwMDAwMDUgMTkwLjBIMTg4LjcwMjAwMDAwMDAwMDA2TDE2MS41MjYwMDAwMDAwMDAwNCAxMTcuNDE2MDAwMDAwMDAwMDFWMTkwLjBIMTMyLjExNDAwMDAwMDAwMDAzVjY5LjI1NjAwMDAwMDAwMDAxSDE2Ni44NTgwMDAwMDAwMDAwM0wyMDAuNzQyMDAwMDAwMDAwMDIgMTUyLjg0OEwyMzQuMjgyMDAwMDAwMDAwMDQgNjkuMjU2MDAwMDAwMDAwMDFaIiBmaWxsPSIjZmZmZmZmIi8+CjxwYXRoIGQ9Ik0zNjkuMTc0IDE2OC42NzJIMzI0LjExTDMxNi44ODYgMTkwLjBIMjg2LjA5OEwzMjkuNzg2IDY5LjI1NjAwMDAwMDAwMDAxSDM2My44NDJMNDA3LjUzIDE5MC4wSDM3Ni4zOThaTTM2MS42MDYgMTQ1Ljk2ODAwMDAwMDAwMDAyIDM0Ni42NDIgMTAxLjc2NDAwMDAwMDAwMDAxIDMzMS44NSAxNDUuOTY4MDAwMDAwMDAwMDJaIiBmaWxsPSIjZmZmZmZmIi8+CjxwYXRoIGQ9Ik01MDQuOTI2IDEwNy40NDAwMDAwMDAwMDAwMVE1MDEuNjU4IDEwMS40MiA0OTUuNTUyIDk4LjIzOFE0ODkuNDQ2IDk1LjA1NjAwMDAwMDAwMDAxIDQ4MS4xOSA5NS4wNTYwMDAwMDAwMDAwMVE0NjYuOTE0IDk1LjA1NjAwMDAwMDAwMDAxIDQ1OC4zMTM5OTk5OTk5OTk5NiAxMDQuNDNRNDQ5LjcxNCAxMTMuODA0IDQ0OS43MTQgMTI5LjQ1NjAwMDAwMDAwMDAyUTQ0OS43MTQgMTQ2LjE0IDQ1OC43NDQgMTU1LjUxNFE0NjcuNzc0IDE2NC44ODggNDgzLjU5OCAxNjQuODg4UTQ5NC40MzQgMTY0Ljg4OCA1MDEuOTE2MDAwMDAwMDAwMDUgMTU5LjM4NDAwMDAwMDAwMDAxUTUwOS4zOTggMTUzLjg4IDUxMi44MzggMTQzLjU2SDQ3NS41MTRWMTIxLjg4OEg1MzkuNDk4VjE0OS4yMzZRNTM2LjIzIDE2MC4yNDQgNTI4LjQwNCAxNjkuNzA0UTUyMC41NzggMTc5LjE2NCA1MDguNTM4IDE4NS4wMTJRNDk2LjQ5OCAxOTAuODYgNDgxLjM2MiAxOTAuODZRNDYzLjQ3NCAxOTAuODYgNDQ5LjQ1NiAxODMuMDM0UTQzNS40MzggMTc1LjIwOCA0MjcuNjExOTk5OTk5OTk5OTcgMTYxLjI3NlE0MTkuNzg2IDE0Ny4zNDQgNDE5Ljc4NiAxMjkuNDU2MDAwMDAwMDAwMDJRNDE5Ljc4NiAxMTEuNTY4MDAwMDAwMDAwMDEgNDI3LjYxMTk5OTk5OTk5OTk3IDk3LjU1MDAwMDAwMDAwMDAxUTQzNS40MzggODMuNTMyMDAwMDAwMDAwMDEgNDQ5LjM3IDc1LjcwNjAwMDAwMDAwMDAyUTQ2My4zMDIgNjcuODgwMDAwMDAwMDAwMDEgNDgxLjE5IDY3Ljg4MDAwMDAwMDAwMDAxUTUwMi44NjIgNjcuODgwMDAwMDAwMDAwMDEgNTE3Ljc0IDc4LjM3MjAwMDAwMDAwMDAxUTUzMi42MTggODguODY0IDUzNy40MzQgMTA3LjQ0MDAwMDAwMDAwMDAxWiIgZmlsbD0idXJsKCNnRykiLz4KPHBhdGggZD0iTTY2Ny44NTM5OTk5OTk5OTk5IDE5MC4wSDYzOC40NDJMNTg5LjI1IDExNS41MjRWMTkwLjBINTU5LjgzOFY2OS4yNTYwMDAwMDAwMDAwMUg1ODkuMjVMNjM4LjQ0MiAxNDQuMDc2VjY5LjI1NjAwMDAwMDAwMDAxSDY2Ny44NTM5OTk5OTk5OTk5WiIgZmlsbD0iI2ZmZmZmZiIvPgo8cGF0aCBkPSJNNzIyLjU5NCA5Mi44MjAwMDAwMDAwMDAwMVYxMTcuMjQ0SDc2MS45ODJWMTM5Ljk0OEg3MjIuNTk0VjE2Ni40MzZINzY3LjE0MlYxOTAuMEg2OTMuMTgyVjY5LjI1NjAwMDAwMDAwMDAxSDc2Ny4xNDJWOTIuODIwMDAwMDAwMDAwMDFaIiBmaWxsPSIjZmZmZmZmIi8+CjxwYXRoIGQ9Ik04NjQuMTk0MDAwMDAwMDAwMSAxOTAuMCA4MzkuNTk4MDAwMDAwMDAwMSAxNTMuMDIgODE3LjkyNiAxOTAuMEg3ODQuNTU4TDgyMy4yNTggMTI4LjU5Nkw3ODMuNjk4MDAwMDAwMDAwMSA2OS4yNTYwMDAwMDAwMDAwMUg4MTcuOTI2TDg0Mi4xNzggMTA1LjcyMDAwMDAwMDAwMDAxTDg2My41MDYwMDAwMDAwMDAxIDY5LjI1NjAwMDAwMDAwMDAxSDg5Ni44NzRMODU4LjUxOCAxMzAuMTQ0TDg5OC40MjIgMTkwLjBaIiBmaWxsPSJ1cmwoI2dYKSIvPgo8cGF0aCBkPSJNMzMzLjM5OCAyMzQuMDMyUTM0MC4yMDYgMjM0LjAzMiAzNDUuNjggMjM3LjIwNjAwMDAwMDAwMDAyUTM1MS4xNTQgMjQwLjM4IDM1NC4yMzYgMjQ2LjIyMTk5OTk5OTk5OTk4UTM1Ny4zMTggMjUyLjA2NCAzNTcuMzE4IDI1OS43OTIwMDAwMDAwMDAwM1EzNTcuMzE4IDI2Ny41MiAzNTQuMjM2IDI3My40MDhRMzUxLjE1NCAyNzkuMjk2IDM0NS42OCAyODIuNTE1OTk5OTk5OTk5OTZRMzQwLjIwNiAyODUuNzM2IDMzMy4zOTggMjg1LjczNlEzMjYuMzE0IDI4NS43MzYgMzIxLjA3MDAwMDAwMDAwMDA1IDI4Mi4zNzhRMzE1LjgyNiAyNzkuMDIgMzEzLjQzNCAyNzMuOTZWMzA4LjczNkgzMDcuMDg2VjIzNC43NjhIMzEzLjQzNFYyNDUuODA4UTMxNS44MjYgMjQwLjc0OCAzMjEuMDI0IDIzNy4zOVEzMjYuMjIyIDIzNC4wMzIgMzMzLjM5OCAyMzQuMDMyWk0zMzIuMTEgMjM5LjY0NFEzMjYuOTU3OTk5OTk5OTk5OTcgMjM5LjY0NCAzMjIuNjc5OTk5OTk5OTk5OTUgMjQyLjEyOFEzMTguNDAyIDI0NC42MTIgMzE1LjkxOCAyNDkuMjEyUTMxMy40MzQgMjUzLjgxMiAzMTMuNDM0IDI1OS44ODRRMzEzLjQzNCAyNjUuOTU2IDMxNS45MTggMjcwLjU1NjAwMDAwMDAwMDA0UTMxOC40MDIgMjc1LjE1NiAzMjIuNjc5OTk5OTk5OTk5OTUgMjc3LjY0UTMyNi45NTc5OTk5OTk5OTk5NyAyODAuMTI0IDMzMi4xMSAyODAuMTI0UTMzNy40NDYgMjgwLjEyNCAzNDEuNjc4IDI3Ny42ODYwMDAwMDAwMDAwNFEzNDUuOTA5OTk5OTk5OTk5OTcgMjc1LjI0OCAzNDguMzQ3OTk5OTk5OTk5OTYgMjcwLjYwMlEzNTAuNzg2IDI2NS45NTYgMzUwLjc4NiAyNTkuNzkyMDAwMDAwMDAwMDNRMzUwLjc4NiAyNTMuNTM2IDM0OC4zNDc5OTk5OTk5OTk5NiAyNDguOTgyUTM0NS45MDk5OTk5OTk5OTk5NyAyNDQuNDI4IDM0MS42NzggMjQyLjAzNlEzMzcuNDQ2IDIzOS42NDQgMzMyLjExIDIzOS42NDRaIiBmaWxsPSIjYWFiMmMzIi8+CjxwYXRoIGQ9Ik0zOTQuODMwMDAwMDAwMDAwMDQgMjMzLjg0OFYyNDAuNTY0SDM5My4wODJRMzg2LjA5MDAwMDAwMDAwMDAzIDI0MC41NjQgMzgxLjg1ODAwMDAwMDAwMDA2IDI0NC4zMzZRMzc3LjYyNjAwMDAwMDAwMDAzIDI0OC4xMDggMzc3LjYyNjAwMDAwMDAwMDAzIDI1Ni45NFYyODUuMEgzNzEuMTg2MDAwMDAwMDAwMDRWMjM0Ljc2OEgzNzcuNjI2MDAwMDAwMDAwMDNWMjQzLjY5MlEzNzkuNzQyIDIzOS4wIDM4NC4xMTIgMjM2LjQyNFEzODguNDgyIDIzMy44NDggMzk0LjgzMDAwMDAwMDAwMDA0IDIzMy44NDhaIiBmaWxsPSIjYWFiMmMzIi8+CjxwYXRoIGQ9Ik00MDUuMDE4IDIyMC41MDc5OTk5OTk5OTk5OFE0MDUuMDE4IDIxOC40ODM5OTk5OTk5OTk5OCA0MDYuMzk4IDIxNy4xNDk5OTk5OTk5OTk5OFE0MDcuNzc4IDIxNS44MTYgNDA5LjcxIDIxNS44MTZRNDExLjY0MiAyMTUuODE2IDQxMy4wMjIgMjE3LjE0OTk5OTk5OTk5OTk4UTQxNC40MDIgMjE4LjQ4Mzk5OTk5OTk5OTk4IDQxNC40MDIgMjIwLjUwNzk5OTk5OTk5OTk4UTQxNC40MDIgMjIyLjUzMiA0MTMuMDIyIDIyMy45MTJRNDExLjY0MiAyMjUuMjkyIDQwOS43MSAyMjUuMjkyUTQwNy43NzggMjI1LjI5MiA0MDYuMzk4IDIyMy45MTJRNDA1LjAxOCAyMjIuNTMyIDQwNS4wMTggMjIwLjUwNzk5OTk5OTk5OTk4Wk00MTIuOTMgMjM0Ljc2OFYyODUuMEg0MDYuNDlWMjM0Ljc2OFoiIGZpbGw9IiNhYWIyYzMiLz4KPHBhdGggZD0iTTQ3My41MzQgMjU1LjU2VjI4NS4wSDQ2Ny4xODZWMjU2LjI5NlE0NjcuMTg2IDI0OC4xMDggNDYzLjA5MiAyNDMuNzg0UTQ1OC45OTggMjM5LjQ2IDQ1MS45MTQgMjM5LjQ2UTQ0NC42NDU5OTk5OTk5OTk5NiAyMzkuNDYgNDQwLjMyMiAyNDQuMDZRNDM1Ljk5OCAyNDguNjYgNDM1Ljk5OCAyNTcuNTg0VjI4NS4wSDQyOS41NThWMjM0Ljc2OEg0MzUuOTk4VjI0My4zMjRRNDM4LjM5IDIzOC43MjQgNDQyLjg5Nzk5OTk5OTk5OTk3IDIzNi4yODZRNDQ3LjQwNTk5OTk5OTk5OTk1IDIzMy44NDggNDUzLjEwOTk5OTk5OTk5OTk2IDIzMy44NDhRNDYyLjEyNiAyMzMuODQ4IDQ2Ny44MyAyMzkuNDE0MDAwMDAwMDAwMDJRNDczLjUzNCAyNDQuOTgwMDAwMDAwMDAwMDIgNDczLjUzNCAyNTUuNTZaIiBmaWxsPSIjYWFiMmMzIi8+CjxwYXRoIGQ9Ik00OTguMTY1OTk5OTk5OTk5OTQgMjQwLjE5NlYyNzEuMzg0UTQ5OC4xNjU5OTk5OTk5OTk5NCAyNzUuOTg0IDQ5OS45MTQgMjc3LjczMTk5OTk5OTk5OTk3UTUwMS42NjIgMjc5LjQ4IDUwNi4wNzggMjc5LjQ4SDUxMS45NjU5OTk5OTk5OTk5NVYyODUuMEg1MDUuMDY2UTQ5OC4yNTggMjg1LjAgNDk0Ljk0NTk5OTk5OTk5OTk3IDI4MS44MjZRNDkxLjYzMzk5OTk5OTk5OTk2IDI3OC42NTIgNDkxLjYzMzk5OTk5OTk5OTk2IDI3MS4zODRWMjQwLjE5Nkg0ODQuNjQyVjIzNC43NjhINDkxLjYzMzk5OTk5OTk5OTk2VjIyMi4xNjRINDk4LjE2NTk5OTk5OTk5OTk0VjIzNC43NjhINTExLjk2NTk5OTk5OTk5OTk1VjI0MC4xOTZaIiBmaWxsPSIjYWFiMmMzIi8+CjxwYXRoIGQ9Ik01NTguMTkzOTk5OTk5OTk5OCAyMTYuOTIwMDAwMDAwMDAwMDJWMjg1LjBINTUxLjc1Mzk5OTk5OTk5OTlWMjE2LjkyMDAwMDAwMDAwMDAyWiIgZmlsbD0iI2FhYjJjMyIvPgo8cGF0aCBkPSJNNTk1Ljg4OTk5OTk5OTk5OTkgMjM0LjAzMlE2MDMuMDY1OTk5OTk5OTk5OSAyMzQuMDMyIDYwOC4yNjM5OTk5OTk5OTk5IDIzNy4zNDRRNjEzLjQ2MTk5OTk5OTk5OTkgMjQwLjY1NiA2MTUuNzYxOTk5OTk5OTk5OCAyNDUuODA4VjIzNC43NjhINjIyLjIwMTk5OTk5OTk5OTlWMjg1LjBINjE1Ljc2MTk5OTk5OTk5OThWMjczLjg2OFE2MTMuMzY5OTk5OTk5OTk5OSAyNzkuMDIgNjA4LjE3MTk5OTk5OTk5OTkgMjgyLjM3OFE2MDIuOTczOTk5OTk5OTk5OSAyODUuNzM2IDU5NS43OTc5OTk5OTk5OTk5IDI4NS43MzZRNTg4Ljk4OTk5OTk5OTk5OTkgMjg1LjczNiA1ODMuNTE1OTk5OTk5OTk5OCAyODIuNTE1OTk5OTk5OTk5OTZRNTc4LjA0MTk5OTk5OTk5OTkgMjc5LjI5NiA1NzQuOTU5OTk5OTk5OTk5OSAyNzMuNDA4UTU3MS44Nzc5OTk5OTk5OTk5IDI2Ny41MiA1NzEuODc3OTk5OTk5OTk5OSAyNTkuNzkyMDAwMDAwMDAwMDNRNTcxLjg3Nzk5OTk5OTk5OTkgMjUyLjA2NCA1NzQuOTU5OTk5OTk5OTk5OSAyNDYuMjIxOTk5OTk5OTk5OThRNTc4LjA0MTk5OTk5OTk5OTkgMjQwLjM4IDU4My41MTU5OTk5OTk5OTk4IDIzNy4yMDYwMDAwMDAwMDAwMlE1ODguOTg5OTk5OTk5OTk5OSAyMzQuMDMyIDU5NS44ODk5OTk5OTk5OTk5IDIzNC4wMzJaTTU5Ny4wODU5OTk5OTk5OTk5IDIzOS42NDRRNTkxLjc0OTk5OTk5OTk5OTkgMjM5LjY0NCA1ODcuNTE3OTk5OTk5OTk5OCAyNDIuMDM2UTU4My4yODU5OTk5OTk5OTk4IDI0NC40MjggNTgwLjg0Nzk5OTk5OTk5OTggMjQ4Ljk4MlE1NzguNDA5OTk5OTk5OTk5OSAyNTMuNTM2IDU3OC40MDk5OTk5OTk5OTk5IDI1OS43OTIwMDAwMDAwMDAwM1E1NzguNDA5OTk5OTk5OTk5OSAyNjUuOTU2IDU4MC44NDc5OTk5OTk5OTk4IDI3MC42MDJRNTgzLjI4NTk5OTk5OTk5OTggMjc1LjI0OCA1ODcuNTE3OTk5OTk5OTk5OCAyNzcuNjg2MDAwMDAwMDAwMDRRNTkxLjc0OTk5OTk5OTk5OTkgMjgwLjEyNCA1OTcuMDg1OTk5OTk5OTk5OSAyODAuMTI0UTYwMi4yMzc5OTk5OTk5OTk4IDI4MC4xMjQgNjA2LjUxNTk5OTk5OTk5OTggMjc3LjY0UTYxMC43OTM5OTk5OTk5OTk5IDI3NS4xNTYgNjEzLjI3Nzk5OTk5OTk5OTggMjcwLjU1NjAwMDAwMDAwMDA0UTYxNS43NjE5OTk5OTk5OTk4IDI2NS45NTYgNjE1Ljc2MTk5OTk5OTk5OTggMjU5Ljg4NFE2MTUuNzYxOTk5OTk5OTk5OCAyNTMuODEyIDYxMy4yNzc5OTk5OTk5OTk4IDI0OS4yMTJRNjEwLjc5Mzk5OTk5OTk5OTkgMjQ0LjYxMiA2MDYuNTE1OTk5OTk5OTk5OCAyNDIuMTI4UTYwMi4yMzc5OTk5OTk5OTk4IDIzOS42NDQgNTk3LjA4NTk5OTk5OTk5OTkgMjM5LjY0NFoiIGZpbGw9IiNhYWIyYzMiLz4KPHBhdGggZD0iTTY0Mi4zMjU5OTk5OTk5OTk5IDI3OS42NjRINjY4LjYzNzk5OTk5OTk5OTlWMjg1LjBINjM0Ljk2NTk5OTk5OTk5OTlWMjc5LjY2NEw2NjAuODE3OTk5OTk5OTk5OSAyNDAuMTAzOTk5OTk5OTk5OThINjM1LjQyNTk5OTk5OTk5OTlWMjM0Ljc2OEg2NjguMTc3OTk5OTk5OTk5OVYyNDAuMTAzOTk5OTk5OTk5OThaIiBmaWxsPSIjYWFiMmMzIi8+CjxwYXRoIGQ9Ik03MjIuODkzOTk5OTk5OTk5OSAyMzQuNzY4IDY5My4wODU5OTk5OTk5OTk5IDMwOC42NDRINjg2LjM2OTk5OTk5OTk5OTlMNjk2LjEyMTk5OTk5OTk5OTggMjg0LjcyNEw2NzUuNTEzOTk5OTk5OTk5OSAyMzQuNzY4SDY4Mi41OThMNjk5LjcwOTk5OTk5OTk5OTkgMjc3LjY0TDcxNi4yNjk5OTk5OTk5OTk5IDIzNC43NjhaIiBmaWxsPSIjYWFiMmMzIi8+PC9zdmc+"><img class="wm l" alt="MAGNEX print lazy" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjExMCAzMCA4MDQgMjkwIiB3aWR0aD0iODA0IiBoZWlnaHQ9IjI5MCI+PGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0ibWFnIiB4MT0iMCIgeTE9IjEiIHgyPSIxIiB5Mj0iMCI+CiAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZTkyODNmIi8+PHN0b3Agb2Zmc2V0PSIuNDUiIHN0b3AtY29sb3I9IiNmNDUxMmYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNmZmEyMWYiLz48L2xpbmVhckdyYWRpZW50Pgo8bGluZWFyR3JhZGllbnQgaWQ9Im1hZ1NoYWRlIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmZmIiBzdG9wLW9wYWNpdHk9Ii4zNSIvPjxzdG9wIG9mZnNldD0iLjUiIHN0b3AtY29sb3I9IiNmZmYiIHN0b3Atb3BhY2l0eT0iMCIvPjwvbGluZWFyR3JhZGllbnQ+CjxsaW5lYXJHcmFkaWVudCBpZD0idGlwIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMCI+CiAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjY2ZkOGU2Ii8+PHN0b3Agb2Zmc2V0PSIuNSIgc3RvcC1jb2xvcj0iI2ZmZmZmZiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzlmYjBjOCIvPjwvbGluZWFyR3JhZGllbnQ+CjxsaW5lYXJHcmFkaWVudCBpZD0icHJGcm9udCIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjAiPgogIDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzJhNmZlOCIvPjxzdG9wIG9mZnNldD0iLjM1IiBzdG9wLWNvbG9yPSIjMThiM2M0Ii8+PHN0b3Agb2Zmc2V0PSIuNyIgc3RvcC1jb2xvcj0iIzZjYzk0YSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2Y2YzUzMSIvPjwvbGluZWFyR3JhZGllbnQ+CjxsaW5lYXJHcmFkaWVudCBpZD0icHJUb3AiIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIwIj4KICA8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiM0ZjhmZjAiLz48c3RvcCBvZmZzZXQ9Ii40NSIgc3RvcC1jb2xvcj0iIzNmZDBjNiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2I5ZTA1YSIvPjwvbGluZWFyR3JhZGllbnQ+CjxsaW5lYXJHcmFkaWVudCBpZD0icHJTaWRlIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CiAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjYjZjOTM1Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjN2M5YTI0Ii8+PC9saW5lYXJHcmFkaWVudD4KPGxpbmVhckdyYWRpZW50IGlkPSJwckluIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMGQzYTZiIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMWI2YThhIi8+PC9saW5lYXJHcmFkaWVudD4KPGxpbmVhckdyYWRpZW50IGlkPSJwclNoaW5lIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmZmIiBzdG9wLW9wYWNpdHk9Ii40NSIvPjxzdG9wIG9mZnNldD0iLjQiIHN0b3AtY29sb3I9IiNmZmYiIHN0b3Atb3BhY2l0eT0iMCIvPjwvbGluZWFyR3JhZGllbnQ+CjxsaW5lYXJHcmFkaWVudCBpZD0ic2t5QSIgeDE9IjAiIHkxPSIwIiB4Mj0iMCIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzVlYzhmMiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzJmODZkNiIvPjwvbGluZWFyR3JhZGllbnQ+CjxsaW5lYXJHcmFkaWVudCBpZD0ic2t5QiIgeDE9IjAiIHkxPSIwIiB4Mj0iMCIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzdmZDNmZiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2M4ZjBmZiIvPjwvbGluZWFyR3JhZGllbnQ+CjxsaW5lYXJHcmFkaWVudCBpZD0ic2t5QyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI2ZmN2EzZCIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2UyMzA2YiIvPjwvbGluZWFyR3JhZGllbnQ+CjxsaW5lYXJHcmFkaWVudCBpZD0iZ0ciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICA8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZjhhMWYiLz48c3RvcCBvZmZzZXQ9Ii41IiBzdG9wLWNvbG9yPSIjZTkyODNmIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMmE1YmQ3Ii8+PC9saW5lYXJHcmFkaWVudD4KPGxpbmVhckdyYWRpZW50IGlkPSJnWCIgeDE9IjAiIHkxPSIxIiB4Mj0iMSIgeTI9IjAiPgogIDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzFmYjVhNiIvPjxzdG9wIG9mZnNldD0iLjQiIHN0b3AtY29sb3I9IiM3Y2M5NDMiLz48c3RvcCBvZmZzZXQ9Ii43IiBzdG9wLWNvbG9yPSIjZmZjNTMxIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZmY2YTJiIi8+PC9saW5lYXJHcmFkaWVudD4KPGxpbmVhckdyYWRpZW50IGlkPSJ0aWxlIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmZmZmZmIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZjFmM2Y3Ii8+PC9saW5lYXJHcmFkaWVudD4KPGZpbHRlciBpZD0idGlsZVNoIiB4PSItMjAlIiB5PSItMjAlIiB3aWR0aD0iMTQwJSIgaGVpZ2h0PSIxNDAlIj4KICA8ZmVEcm9wU2hhZG93IGR4PSIwIiBkeT0iMTQiIHN0ZERldmlhdGlvbj0iMjIiIGZsb29kLWNvbG9yPSIjMWIyNDQwIiBmbG9vZC1vcGFjaXR5PSIuMTgiLz48L2ZpbHRlcj4KPGZpbHRlciBpZD0ic29mdCIgeD0iLTMwJSIgeT0iLTMwJSIgd2lkdGg9IjE2MCUiIGhlaWdodD0iMTYwJSI+PGZlRHJvcFNoYWRvdyBkeD0iMCIgZHk9IjgiIHN0ZERldmlhdGlvbj0iMTAiIGZsb29kLWNvbG9yPSIjMGIxZjRkIiBmbG9vZC1vcGFjaXR5PSIuMjIiLz48L2ZpbHRlcj4KPC9kZWZzPjxwYXRoIGQ9Ik0yNjguODU0MDAwMDAwMDAwMDQgNjkuMjU2MDAwMDAwMDAwMDFWMTkwLjBIMjM5LjQ0MjAwMDAwMDAwMDA0VjExNy41ODgwMDAwMDAwMDAwMUwyMTIuNDM4MDAwMDAwMDAwMDUgMTkwLjBIMTg4LjcwMjAwMDAwMDAwMDA2TDE2MS41MjYwMDAwMDAwMDAwNCAxMTcuNDE2MDAwMDAwMDAwMDFWMTkwLjBIMTMyLjExNDAwMDAwMDAwMDAzVjY5LjI1NjAwMDAwMDAwMDAxSDE2Ni44NTgwMDAwMDAwMDAwM0wyMDAuNzQyMDAwMDAwMDAwMDIgMTUyLjg0OEwyMzQuMjgyMDAwMDAwMDAwMDQgNjkuMjU2MDAwMDAwMDAwMDFaIiBmaWxsPSIjMTYyNDVjIi8+CjxwYXRoIGQ9Ik0zNjkuMTc0IDE2OC42NzJIMzI0LjExTDMxNi44ODYgMTkwLjBIMjg2LjA5OEwzMjkuNzg2IDY5LjI1NjAwMDAwMDAwMDAxSDM2My44NDJMNDA3LjUzIDE5MC4wSDM3Ni4zOThaTTM2MS42MDYgMTQ1Ljk2ODAwMDAwMDAwMDAyIDM0Ni42NDIgMTAxLjc2NDAwMDAwMDAwMDAxIDMzMS44NSAxNDUuOTY4MDAwMDAwMDAwMDJaIiBmaWxsPSIjMTYyNDVjIi8+CjxwYXRoIGQ9Ik01MDQuOTI2IDEwNy40NDAwMDAwMDAwMDAwMVE1MDEuNjU4IDEwMS40MiA0OTUuNTUyIDk4LjIzOFE0ODkuNDQ2IDk1LjA1NjAwMDAwMDAwMDAxIDQ4MS4xOSA5NS4wNTYwMDAwMDAwMDAwMVE0NjYuOTE0IDk1LjA1NjAwMDAwMDAwMDAxIDQ1OC4zMTM5OTk5OTk5OTk5NiAxMDQuNDNRNDQ5LjcxNCAxMTMuODA0IDQ0OS43MTQgMTI5LjQ1NjAwMDAwMDAwMDAyUTQ0OS43MTQgMTQ2LjE0IDQ1OC43NDQgMTU1LjUxNFE0NjcuNzc0IDE2NC44ODggNDgzLjU5OCAxNjQuODg4UTQ5NC40MzQgMTY0Ljg4OCA1MDEuOTE2MDAwMDAwMDAwMDUgMTU5LjM4NDAwMDAwMDAwMDAxUTUwOS4zOTggMTUzLjg4IDUxMi44MzggMTQzLjU2SDQ3NS41MTRWMTIxLjg4OEg1MzkuNDk4VjE0OS4yMzZRNTM2LjIzIDE2MC4yNDQgNTI4LjQwNCAxNjkuNzA0UTUyMC41NzggMTc5LjE2NCA1MDguNTM4IDE4NS4wMTJRNDk2LjQ5OCAxOTAuODYgNDgxLjM2MiAxOTAuODZRNDYzLjQ3NCAxOTAuODYgNDQ5LjQ1NiAxODMuMDM0UTQzNS40MzggMTc1LjIwOCA0MjcuNjExOTk5OTk5OTk5OTcgMTYxLjI3NlE0MTkuNzg2IDE0Ny4zNDQgNDE5Ljc4NiAxMjkuNDU2MDAwMDAwMDAwMDJRNDE5Ljc4NiAxMTEuNTY4MDAwMDAwMDAwMDEgNDI3LjYxMTk5OTk5OTk5OTk3IDk3LjU1MDAwMDAwMDAwMDAxUTQzNS40MzggODMuNTMyMDAwMDAwMDAwMDEgNDQ5LjM3IDc1LjcwNjAwMDAwMDAwMDAyUTQ2My4zMDIgNjcuODgwMDAwMDAwMDAwMDEgNDgxLjE5IDY3Ljg4MDAwMDAwMDAwMDAxUTUwMi44NjIgNjcuODgwMDAwMDAwMDAwMDEgNTE3Ljc0IDc4LjM3MjAwMDAwMDAwMDAxUTUzMi42MTggODguODY0IDUzNy40MzQgMTA3LjQ0MDAwMDAwMDAwMDAxWiIgZmlsbD0idXJsKCNnRykiLz4KPHBhdGggZD0iTTY2Ny44NTM5OTk5OTk5OTk5IDE5MC4wSDYzOC40NDJMNTg5LjI1IDExNS41MjRWMTkwLjBINTU5LjgzOFY2OS4yNTYwMDAwMDAwMDAwMUg1ODkuMjVMNjM4LjQ0MiAxNDQuMDc2VjY5LjI1NjAwMDAwMDAwMDAxSDY2Ny44NTM5OTk5OTk5OTk5WiIgZmlsbD0iIzE2MjQ1YyIvPgo8cGF0aCBkPSJNNzIyLjU5NCA5Mi44MjAwMDAwMDAwMDAwMVYxMTcuMjQ0SDc2MS45ODJWMTM5Ljk0OEg3MjIuNTk0VjE2Ni40MzZINzY3LjE0MlYxOTAuMEg2OTMuMTgyVjY5LjI1NjAwMDAwMDAwMDAxSDc2Ny4xNDJWOTIuODIwMDAwMDAwMDAwMDFaIiBmaWxsPSIjMTYyNDVjIi8+CjxwYXRoIGQ9Ik04NjQuMTk0MDAwMDAwMDAwMSAxOTAuMCA4MzkuNTk4MDAwMDAwMDAwMSAxNTMuMDIgODE3LjkyNiAxOTAuMEg3ODQuNTU4TDgyMy4yNTggMTI4LjU5Nkw3ODMuNjk4MDAwMDAwMDAwMSA2OS4yNTYwMDAwMDAwMDAwMUg4MTcuOTI2TDg0Mi4xNzggMTA1LjcyMDAwMDAwMDAwMDAxTDg2My41MDYwMDAwMDAwMDAxIDY5LjI1NjAwMDAwMDAwMDAxSDg5Ni44NzRMODU4LjUxOCAxMzAuMTQ0TDg5OC40MjIgMTkwLjBaIiBmaWxsPSJ1cmwoI2dYKSIvPgo8cGF0aCBkPSJNMzMzLjM5OCAyMzQuMDMyUTM0MC4yMDYgMjM0LjAzMiAzNDUuNjggMjM3LjIwNjAwMDAwMDAwMDAyUTM1MS4xNTQgMjQwLjM4IDM1NC4yMzYgMjQ2LjIyMTk5OTk5OTk5OTk4UTM1Ny4zMTggMjUyLjA2NCAzNTcuMzE4IDI1OS43OTIwMDAwMDAwMDAwM1EzNTcuMzE4IDI2Ny41MiAzNTQuMjM2IDI3My40MDhRMzUxLjE1NCAyNzkuMjk2IDM0NS42OCAyODIuNTE1OTk5OTk5OTk5OTZRMzQwLjIwNiAyODUuNzM2IDMzMy4zOTggMjg1LjczNlEzMjYuMzE0IDI4NS43MzYgMzIxLjA3MDAwMDAwMDAwMDA1IDI4Mi4zNzhRMzE1LjgyNiAyNzkuMDIgMzEzLjQzNCAyNzMuOTZWMzA4LjczNkgzMDcuMDg2VjIzNC43NjhIMzEzLjQzNFYyNDUuODA4UTMxNS44MjYgMjQwLjc0OCAzMjEuMDI0IDIzNy4zOVEzMjYuMjIyIDIzNC4wMzIgMzMzLjM5OCAyMzQuMDMyWk0zMzIuMTEgMjM5LjY0NFEzMjYuOTU3OTk5OTk5OTk5OTcgMjM5LjY0NCAzMjIuNjc5OTk5OTk5OTk5OTUgMjQyLjEyOFEzMTguNDAyIDI0NC42MTIgMzE1LjkxOCAyNDkuMjEyUTMxMy40MzQgMjUzLjgxMiAzMTMuNDM0IDI1OS44ODRRMzEzLjQzNCAyNjUuOTU2IDMxNS45MTggMjcwLjU1NjAwMDAwMDAwMDA0UTMxOC40MDIgMjc1LjE1NiAzMjIuNjc5OTk5OTk5OTk5OTUgMjc3LjY0UTMyNi45NTc5OTk5OTk5OTk5NyAyODAuMTI0IDMzMi4xMSAyODAuMTI0UTMzNy40NDYgMjgwLjEyNCAzNDEuNjc4IDI3Ny42ODYwMDAwMDAwMDAwNFEzNDUuOTA5OTk5OTk5OTk5OTcgMjc1LjI0OCAzNDguMzQ3OTk5OTk5OTk5OTYgMjcwLjYwMlEzNTAuNzg2IDI2NS45NTYgMzUwLjc4NiAyNTkuNzkyMDAwMDAwMDAwMDNRMzUwLjc4NiAyNTMuNTM2IDM0OC4zNDc5OTk5OTk5OTk5NiAyNDguOTgyUTM0NS45MDk5OTk5OTk5OTk5NyAyNDQuNDI4IDM0MS42NzggMjQyLjAzNlEzMzcuNDQ2IDIzOS42NDQgMzMyLjExIDIzOS42NDRaIiBmaWxsPSIjN2M4NDk0Ii8+CjxwYXRoIGQ9Ik0zOTQuODMwMDAwMDAwMDAwMDQgMjMzLjg0OFYyNDAuNTY0SDM5My4wODJRMzg2LjA5MDAwMDAwMDAwMDAzIDI0MC41NjQgMzgxLjg1ODAwMDAwMDAwMDA2IDI0NC4zMzZRMzc3LjYyNjAwMDAwMDAwMDAzIDI0OC4xMDggMzc3LjYyNjAwMDAwMDAwMDAzIDI1Ni45NFYyODUuMEgzNzEuMTg2MDAwMDAwMDAwMDRWMjM0Ljc2OEgzNzcuNjI2MDAwMDAwMDAwMDNWMjQzLjY5MlEzNzkuNzQyIDIzOS4wIDM4NC4xMTIgMjM2LjQyNFEzODguNDgyIDIzMy44NDggMzk0LjgzMDAwMDAwMDAwMDA0IDIzMy44NDhaIiBmaWxsPSIjN2M4NDk0Ii8+CjxwYXRoIGQ9Ik00MDUuMDE4IDIyMC41MDc5OTk5OTk5OTk5OFE0MDUuMDE4IDIxOC40ODM5OTk5OTk5OTk5OCA0MDYuMzk4IDIxNy4xNDk5OTk5OTk5OTk5OFE0MDcuNzc4IDIxNS44MTYgNDA5LjcxIDIxNS44MTZRNDExLjY0MiAyMTUuODE2IDQxMy4wMjIgMjE3LjE0OTk5OTk5OTk5OTk4UTQxNC40MDIgMjE4LjQ4Mzk5OTk5OTk5OTk4IDQxNC40MDIgMjIwLjUwNzk5OTk5OTk5OTk4UTQxNC40MDIgMjIyLjUzMiA0MTMuMDIyIDIyMy45MTJRNDExLjY0MiAyMjUuMjkyIDQwOS43MSAyMjUuMjkyUTQwNy43NzggMjI1LjI5MiA0MDYuMzk4IDIyMy45MTJRNDA1LjAxOCAyMjIuNTMyIDQwNS4wMTggMjIwLjUwNzk5OTk5OTk5OTk4Wk00MTIuOTMgMjM0Ljc2OFYyODUuMEg0MDYuNDlWMjM0Ljc2OFoiIGZpbGw9IiM3Yzg0OTQiLz4KPHBhdGggZD0iTTQ3My41MzQgMjU1LjU2VjI4NS4wSDQ2Ny4xODZWMjU2LjI5NlE0NjcuMTg2IDI0OC4xMDggNDYzLjA5MiAyNDMuNzg0UTQ1OC45OTggMjM5LjQ2IDQ1MS45MTQgMjM5LjQ2UTQ0NC42NDU5OTk5OTk5OTk5NiAyMzkuNDYgNDQwLjMyMiAyNDQuMDZRNDM1Ljk5OCAyNDguNjYgNDM1Ljk5OCAyNTcuNTg0VjI4NS4wSDQyOS41NThWMjM0Ljc2OEg0MzUuOTk4VjI0My4zMjRRNDM4LjM5IDIzOC43MjQgNDQyLjg5Nzk5OTk5OTk5OTk3IDIzNi4yODZRNDQ3LjQwNTk5OTk5OTk5OTk1IDIzMy44NDggNDUzLjEwOTk5OTk5OTk5OTk2IDIzMy44NDhRNDYyLjEyNiAyMzMuODQ4IDQ2Ny44MyAyMzkuNDE0MDAwMDAwMDAwMDJRNDczLjUzNCAyNDQuOTgwMDAwMDAwMDAwMDIgNDczLjUzNCAyNTUuNTZaIiBmaWxsPSIjN2M4NDk0Ii8+CjxwYXRoIGQ9Ik00OTguMTY1OTk5OTk5OTk5OTQgMjQwLjE5NlYyNzEuMzg0UTQ5OC4xNjU5OTk5OTk5OTk5NCAyNzUuOTg0IDQ5OS45MTQgMjc3LjczMTk5OTk5OTk5OTk3UTUwMS42NjIgMjc5LjQ4IDUwNi4wNzggMjc5LjQ4SDUxMS45NjU5OTk5OTk5OTk5NVYyODUuMEg1MDUuMDY2UTQ5OC4yNTggMjg1LjAgNDk0Ljk0NTk5OTk5OTk5OTk3IDI4MS44MjZRNDkxLjYzMzk5OTk5OTk5OTk2IDI3OC42NTIgNDkxLjYzMzk5OTk5OTk5OTk2IDI3MS4zODRWMjQwLjE5Nkg0ODQuNjQyVjIzNC43NjhINDkxLjYzMzk5OTk5OTk5OTk2VjIyMi4xNjRINDk4LjE2NTk5OTk5OTk5OTk0VjIzNC43NjhINTExLjk2NTk5OTk5OTk5OTk1VjI0MC4xOTZaIiBmaWxsPSIjN2M4NDk0Ii8+CjxwYXRoIGQ9Ik01NTguMTkzOTk5OTk5OTk5OCAyMTYuOTIwMDAwMDAwMDAwMDJWMjg1LjBINTUxLjc1Mzk5OTk5OTk5OTlWMjE2LjkyMDAwMDAwMDAwMDAyWiIgZmlsbD0iIzdjODQ5NCIvPgo8cGF0aCBkPSJNNTk1Ljg4OTk5OTk5OTk5OTkgMjM0LjAzMlE2MDMuMDY1OTk5OTk5OTk5OSAyMzQuMDMyIDYwOC4yNjM5OTk5OTk5OTk5IDIzNy4zNDRRNjEzLjQ2MTk5OTk5OTk5OTkgMjQwLjY1NiA2MTUuNzYxOTk5OTk5OTk5OCAyNDUuODA4VjIzNC43NjhINjIyLjIwMTk5OTk5OTk5OTlWMjg1LjBINjE1Ljc2MTk5OTk5OTk5OThWMjczLjg2OFE2MTMuMzY5OTk5OTk5OTk5OSAyNzkuMDIgNjA4LjE3MTk5OTk5OTk5OTkgMjgyLjM3OFE2MDIuOTczOTk5OTk5OTk5OSAyODUuNzM2IDU5NS43OTc5OTk5OTk5OTk5IDI4NS43MzZRNTg4Ljk4OTk5OTk5OTk5OTkgMjg1LjczNiA1ODMuNTE1OTk5OTk5OTk5OCAyODIuNTE1OTk5OTk5OTk5OTZRNTc4LjA0MTk5OTk5OTk5OTkgMjc5LjI5NiA1NzQuOTU5OTk5OTk5OTk5OSAyNzMuNDA4UTU3MS44Nzc5OTk5OTk5OTk5IDI2Ny41MiA1NzEuODc3OTk5OTk5OTk5OSAyNTkuNzkyMDAwMDAwMDAwMDNRNTcxLjg3Nzk5OTk5OTk5OTkgMjUyLjA2NCA1NzQuOTU5OTk5OTk5OTk5OSAyNDYuMjIxOTk5OTk5OTk5OThRNTc4LjA0MTk5OTk5OTk5OTkgMjQwLjM4IDU4My41MTU5OTk5OTk5OTk4IDIzNy4yMDYwMDAwMDAwMDAwMlE1ODguOTg5OTk5OTk5OTk5OSAyMzQuMDMyIDU5NS44ODk5OTk5OTk5OTk5IDIzNC4wMzJaTTU5Ny4wODU5OTk5OTk5OTk5IDIzOS42NDRRNTkxLjc0OTk5OTk5OTk5OTkgMjM5LjY0NCA1ODcuNTE3OTk5OTk5OTk5OCAyNDIuMDM2UTU4My4yODU5OTk5OTk5OTk4IDI0NC40MjggNTgwLjg0Nzk5OTk5OTk5OTggMjQ4Ljk4MlE1NzguNDA5OTk5OTk5OTk5OSAyNTMuNTM2IDU3OC40MDk5OTk5OTk5OTk5IDI1OS43OTIwMDAwMDAwMDAwM1E1NzguNDA5OTk5OTk5OTk5OSAyNjUuOTU2IDU4MC44NDc5OTk5OTk5OTk4IDI3MC42MDJRNTgzLjI4NTk5OTk5OTk5OTggMjc1LjI0OCA1ODcuNTE3OTk5OTk5OTk5OCAyNzcuNjg2MDAwMDAwMDAwMDRRNTkxLjc0OTk5OTk5OTk5OTkgMjgwLjEyNCA1OTcuMDg1OTk5OTk5OTk5OSAyODAuMTI0UTYwMi4yMzc5OTk5OTk5OTk4IDI4MC4xMjQgNjA2LjUxNTk5OTk5OTk5OTggMjc3LjY0UTYxMC43OTM5OTk5OTk5OTk5IDI3NS4xNTYgNjEzLjI3Nzk5OTk5OTk5OTggMjcwLjU1NjAwMDAwMDAwMDA0UTYxNS43NjE5OTk5OTk5OTk4IDI2NS45NTYgNjE1Ljc2MTk5OTk5OTk5OTggMjU5Ljg4NFE2MTUuNzYxOTk5OTk5OTk5OCAyNTMuODEyIDYxMy4yNzc5OTk5OTk5OTk4IDI0OS4yMTJRNjEwLjc5Mzk5OTk5OTk5OTkgMjQ0LjYxMiA2MDYuNTE1OTk5OTk5OTk5OCAyNDIuMTI4UTYwMi4yMzc5OTk5OTk5OTk4IDIzOS42NDQgNTk3LjA4NTk5OTk5OTk5OTkgMjM5LjY0NFoiIGZpbGw9IiM3Yzg0OTQiLz4KPHBhdGggZD0iTTY0Mi4zMjU5OTk5OTk5OTk5IDI3OS42NjRINjY4LjYzNzk5OTk5OTk5OTlWMjg1LjBINjM0Ljk2NTk5OTk5OTk5OTlWMjc5LjY2NEw2NjAuODE3OTk5OTk5OTk5OSAyNDAuMTAzOTk5OTk5OTk5OThINjM1LjQyNTk5OTk5OTk5OTlWMjM0Ljc2OEg2NjguMTc3OTk5OTk5OTk5OVYyNDAuMTAzOTk5OTk5OTk5OThaIiBmaWxsPSIjN2M4NDk0Ii8+CjxwYXRoIGQ9Ik03MjIuODkzOTk5OTk5OTk5OSAyMzQuNzY4IDY5My4wODU5OTk5OTk5OTk5IDMwOC42NDRINjg2LjM2OTk5OTk5OTk5OTlMNjk2LjEyMTk5OTk5OTk5OTggMjg0LjcyNEw2NzUuNTEzOTk5OTk5OTk5OSAyMzQuNzY4SDY4Mi41OThMNjk5LjcwOTk5OTk5OTk5OTkgMjc3LjY0TDcxNi4yNjk5OTk5OTk5OTk5IDIzNC43NjhaIiBmaWxsPSIjN2M4NDk0Ii8+PC9zdmc+"><span class="lbl">רישיונות</span><button class="thm-tgl" id="thmTgl" role="switch" aria-label="מצב יום / לילה" title="מצב יום / לילה – גרירה או לחיצה"><span class="thm-knob"><svg class="k-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="#fff6d8" stroke="rgba(0,0,0,.25)" stroke-width=".8"/></svg><svg class="k-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.6" fill="#ffd23f" stroke="#e8a400" stroke-width=".8"/><g stroke="#f2b100" stroke-width="2" stroke-linecap="round"><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M5.3 18.7 7 17M17 7l1.7-1.7"/></g></svg></span></button><button class="sm ghost" id="rf" aria-label="רענון">🔄</button></div>
   <div class="pill"><span class="dot" id="dot"></span><span id="hb">מתחבר…</span></div>
 </header>
 <div id="pair" hidden style="padding:40px 22px;text-align:center;max-width:520px;margin:0 auto">
@@ -75,12 +126,15 @@ textarea{min-height:70px;resize:vertical}
 </div>
 <main id="main">
   <div class="card" id="home" hidden style="border-color:var(--acc)"><b>✅ המכשיר אושר.</b> כדי שלא תצטרך לאשר שוב: לחץ עכשיו על כפתור השיתוף <b>⬆</b> ← <b>"הוסף למסך הבית"</b>, והשתמש מעכשיו רק באייקון החדש (את הישן אפשר למחוק). <button class="sm" onclick="this.parentNode.hidden=true">הבנתי</button></div>
+  <div class="tiles" id="tiles"></div>
+  <input type="search" id="q" placeholder="חיפוש: שם, טלפון, קוד מחשב, קוד הטבה או משווק…">
   <h2 id="pH">בקשות ממתינות</h2>
   <div id="pend"><div class="empty">טוען…</div></div>
+  <h2 id="gH" class="gh">🎁 רישיונות מתנה · קוד הטבה</h2>
+  <div id="gift"></div>
   <h2 id="tH" hidden>בתקופת ניסיון</h2>
   <div id="trial"></div>
   <h2 id="cH">לקוחות</h2>
-  <input type="search" id="q" placeholder="חיפוש לפי שם, טלפון או קוד מחשב…">
   <div id="cust"></div>
   <p class="mut" style="text-align:center;margin-top:22px" id="snapT"></p>
 </main>
@@ -93,6 +147,10 @@ const RELAY = "https://script.google.com/macros/s/" + (HP.get("s") || "AKfycbyuj
 const PN = { magnex: "MAGNEX", booth: "MAGNEX Booth (תוסף)", "booth-solo": "MAGNEX Booth Station", darkroom: "MAGNEX Lab (תוסף)", pocket: "MAGNEX Pocket (תוסף)", loupe: "MAGNEX Loupe (תוסף)", loupeprint: "MAGNEX Loupe הדפסה (תוסף)", owner: "הכול (בעלים)", "?": "רישיון" };
 const PAYN = { bit: "ביט", paybox: "פייבוקס", bank: "העברה בנקאית", other: "אחר" };
 const ALLP = ["magnex", "booth", "booth-solo", "darkroom", "pocket", "loupe", "loupeprint"];
+PN.gift = "🎁 MAGNEX · הטבה";   // b111: a benefit-code license (half a year)
+const ADDONS = ["booth", "darkroom", "pocket", "loupe", "loupeprint"];
+const PS = { magnex: "MAGNEX", booth: "Booth", "booth-solo": "Booth Station", darkroom: "Lab", pocket: "Pocket", loupe: "Loupe", loupeprint: "Loupe הדפסה", owner: "הכול (בעלים)" };
+const GST = { active: ["פעיל", "a"], waiting: ["ממתין לאישור", "w"], stopped: ["⏸ נעצר", "s"], ended: ["הסתיים", "e"] };
 let PANEL = {}, PF = {};   // the open action panel per computer code + what was typed in it
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -153,44 +211,68 @@ async function send(cmd, okMsg) {
     toast(okMsg); render(); setTimeout(load, 4000);
   } catch (e) { toast("אין חיבור – נסה שוב"); }
 }
-function actBar(code) {
-  const k = PANEL[code];
-  return `<div class="acts">${[["addprod", "➕ הוסף תוכנה"], ["gift", "🎁 מתנה"], ["edit", "✏️ ערוך פרטים"]].map(([x, t]) => `<button class="sm opn${k === x ? " pri" : ""}" data-c="${esc(code)}" data-k="${x}">${t}</button>`).join("")}</div>`;
+function actBar(key, code) {
+  const k = PANEL[key];
+  return `<div class="acts">${[["addprod", "➕ הוסף תוכנה"], ["gift", "🎁 מתנה"], ["edit", "✏️ ערוך פרטים"]].map(([x, t]) => `<button class="sm opn${k === x ? " pri" : ""}" data-key="${esc(key)}" data-c="${esc(code)}" data-k="${x}">${t}</button>`).join("")}</div>`;
 }
-function panel(code, name, have, c) {
-  const k = PANEL[code]; if (!k) return "";
-  const f = PF[code] || (PF[code] = { prods: [], amount: "", method: "bit", msg: `היי ${String(name || "").trim().split(/\s+/)[0] || ""}, קיבלת מתנה מצוות MAGNEX 🎁 ותודה על האמון!`.replace("היי ,", "היי,"),
-    name: name || "", phone: c?.phone || "", email: c?.email || "", notes: c?.notes || "" });
+// b111: one panel per card (key = the computer code, or "g:<code>" in the 🎁 rubric – the same customer can be in both lists)
+function panel(key, code, name, have, c, isGift) {
+  const k = PANEL[key]; if (!k) return "";
+  const f = PF[key] || (PF[key] = { prods: [], amount: "", method: "bit", msg: `היי ${String(name || "").trim().split(/\s+/)[0] || ""}, קיבלת מתנה מצוות MAGNEX 🎁 ותודה על האמון!`.replace("היי ,", "היי,"),
+    name: name || "", phone: c?.phone || "", email: c?.email || "", notes: c?.notes || "", mode: isGift ? "trial" : "gift" });
   const pick = ALLP.filter(p => !have.includes(p) && !(p === "booth-solo" && (have.includes("magnex") || have.includes("booth")))).map(p => `<label class="ck"><input type="checkbox" class="fp" value="${p}" ${f.prods.includes(p) ? "checked" : ""}>${PN[p]}</label>`).join("") || `<span class="mut">יש לו כבר את כל התוכנות</span>`;
   const nm = `<input type="text" class="fn" value="${esc(f.name)}" placeholder="שם הלקוח (יופיע ברישיון)">`;
-  if (k === "addprod") return `<div class="pnl" data-c="${esc(code)}"><div class="ttl">➕ הוספת תוכנה בתשלום</div>${nm}<div class="chips">${pick}</div>
-    <div class="g2"><input type="number" inputmode="decimal" class="fa" value="${esc(f.amount)}" placeholder="סכום ₪"><select class="fm">${Object.keys(PAYN).map(m => `<option value="${m}" ${f.method === m ? "selected" : ""}>${PAYN[m]}</option>`).join("")}</select></div>
+  const pay = `<div class="g2"><input type="number" inputmode="decimal" class="fa" value="${esc(f.amount)}" placeholder="סכום ₪"><select class="fm">${Object.keys(PAYN).map(m => `<option value="${m}" ${f.method === m ? "selected" : ""}>${PAYN[m]}</option>`).join("")}</select></div>`;
+  const P = `<div class="pnl" data-key="${esc(key)}" data-c="${esc(code)}">`;
+  if (k.startsWith("p:")) {   // b111: "+ <product>" from the 'תוכנות' row
+    const p = k.slice(2), o = (v, t, sub, dis) => `<label class="opt${dis ? " dis" : ""}"><input type="radio" class="fmo" name="mo_${esc(key)}" value="${v}" ${f.mode === v ? "checked" : ""} ${dis ? "disabled" : ""}><span><b>${t}</b><br><span class="mut">${sub}</span></span></label>`;
+    return `${P}<div class="ttl">➕ ${esc(PN[p] || p)}</div>${nm}
+    ${isGift ? o("gift", "🎁 במתנה עד סוף ההטבה", "עוד לא זמין – אין היום דרך בטוחה לתוסף עם תאריך סיום", true) : o("gift", "🎁 במתנה", "רישיון קבוע, בלי תשלום")}
+    ${o("trial", "🕒 ניסיון 14 יום", "הניסיון של המחשב שלו – 14 יום לכל התוספים שעוד לא נקנו")}
+    ${o("paid", "💳 בתשלום קבוע", "רישיון קבוע אחרי שהתשלום התקבל")}
+    ${f.mode === "paid" ? pay : ""}
+    <div class="acts"><button class="pri go" data-k="prod" data-p="${p}">🚀 פתח ושלח</button><button class="cx">ביטול</button></div></div>`;
+  }
+  if (k === "perm") return `${P}<div class="ttl">💳 הפיכה לרישיון MAGNEX קבוע</div>${nm}${pay}
+    <div class="mut" style="margin-top:6px">רישיון MAGNEX רגיל וקבוע (כמו קנייה). החומרים והאירועים שלו נשארים.</div>
+    <div class="acts"><button class="pri go" data-k="perm">✅ התשלום התקבל – הפעל קבוע</button><button class="cx">ביטול</button></div></div>`;
+  if (k === "addprod") return `${P}<div class="ttl">➕ הוספת תוכנה בתשלום</div>${nm}<div class="chips">${pick}</div>${pay}
     <div class="acts"><button class="pri go" data-k="addprod">✅ התשלום התקבל – הפעל</button><button class="cx">ביטול</button></div></div>`;
-  if (k === "gift") return `<div class="pnl" data-c="${esc(code)}"><div class="ttl">🎁 מתנה – בלי תשלום</div>${nm}<div class="chips">${pick}</div>
+  if (k === "gift") return `${P}<div class="ttl">🎁 מתנה – בלי תשלום</div>${nm}<div class="chips">${pick}</div>
     <div style="margin-top:8px"><textarea class="fg" placeholder="הודעה אישית שתקפוץ לו בתוכנה (לא חובה)">${esc(f.msg)}</textarea></div>
     <div class="acts"><button class="pri go" data-k="gift">🎁 שלח מתנה</button><button class="cx">ביטול</button></div></div>`;
-  return `<div class="pnl" data-c="${esc(code)}"><div class="ttl">✏️ פרטי הלקוח</div>${nm}
+  return `${P}<div class="ttl">✏️ פרטי הלקוח</div>${nm}
     <div class="g2"><input type="tel" class="fph" value="${esc(f.phone)}" placeholder="טלפון"><input type="email" class="fe" value="${esc(f.email)}" placeholder="מייל"></div>
     <div style="margin-top:8px"><textarea class="fno" placeholder="הערות">${esc(f.notes)}</textarea></div>
     <div class="acts"><button class="pri go" data-k="custsave">💾 שמור</button><button class="cx">ביטול</button></div></div>`;
 }
 function bindActs() {
-  document.querySelectorAll("button.opn").forEach(b => b.onclick = () => { const c = b.dataset.c; PANEL[c] = PANEL[c] === b.dataset.k ? null : b.dataset.k; render(); });
+  document.querySelectorAll("button.opn,button.pb.add").forEach(b => b.onclick = (ev) => { ev.stopPropagation(); const c = b.dataset.key || b.dataset.c; PANEL[c] = PANEL[c] === b.dataset.k ? null : b.dataset.k; render(); });
   document.querySelectorAll(".pnl").forEach(pn => {
-    const code = pn.dataset.c, f = PF[code];
-    const on = (sel, key, ev = "oninput") => { const el = pn.querySelector(sel); if (el) el[ev] = () => f[key] = el.value; };
+    const key = pn.dataset.key || pn.dataset.c, code = pn.dataset.c, f = PF[key];
+    if (!f) return;
+    const on = (sel, k2, ev = "oninput") => { const el = pn.querySelector(sel); if (el) el[ev] = () => f[k2] = el.value; };
     on(".fn", "name"); on(".fa", "amount"); on(".fm", "method", "onchange"); on(".fg", "msg"); on(".fph", "phone"); on(".fe", "email"); on(".fno", "notes");
     pn.querySelectorAll(".fp").forEach(x => x.onchange = () => f.prods = [...pn.querySelectorAll(".fp:checked")].map(y => y.value));
-    pn.querySelector(".cx").onclick = () => { PANEL[code] = null; delete PF[code]; render(); };
+    pn.querySelectorAll(".fmo").forEach(x => x.onchange = () => { f.mode = x.value; render(); });
+    pn.querySelector(".cx").onclick = () => { PANEL[key] = null; delete PF[key]; render(); };
     const go = pn.querySelector(".go"), k = go.dataset.k;
     armed(go, () => {
       if (!f.name.trim()) return toast("צריך שם לקוח");
       if (k === "addprod" && !f.prods.length) return toast("לא נבחרה תוכנה");
       if (k === "gift" && !f.prods.length && !f.msg.trim()) return toast("בחר תוכנה או כתוב הודעה");
-      const cmd = k === "custsave" ? { a: k, code, name: f.name.trim(), phone: f.phone, email: f.email, notes: f.notes }
-        : { a: k, code, name: f.name.trim(), products: f.prods, amount: k === "addprod" ? f.amount : "", method: f.method, msg: k === "gift" ? f.msg.trim() : "" };
-      PANEL[code] = null; delete PF[code];
-      send(cmd, k === "custsave" ? "💾 נשלח – הפרטים יישמרו" : k === "gift" ? "🎁 נשלח – המחשב יחתום וישלח לו" : "✅ נשלח – המחשב יחתום והרישיון יגיע אליו לבד");
+      let cmd, msg;
+      if (k === "prod") {   // b111: the same remote commands as before – gift / trialext / addprod
+        const p = go.dataset.p;
+        if (f.mode === "gift") { cmd = { a: "gift", code, name: f.name.trim(), products: [p], amount: "", method: f.method, msg: "" }; msg = "🎁 נשלח – המחשב יחתום וישלח לו"; }
+        else if (f.mode === "trial") { cmd = { a: "trialext", code, name: f.name.trim(), days: 14, left: 0 }; msg = "🕒 נשלח – 14 יום ניסיון"; }
+        else if (f.mode === "paid") { cmd = { a: "addprod", code, name: f.name.trim(), products: [p], amount: f.amount, method: f.method, msg: "" }; msg = "✅ נשלח – המחשב יחתום והרישיון יגיע אליו לבד"; }
+        else return toast("בחר איך לפתוח");
+      } else if (k === "perm") { cmd = { a: "addprod", code, name: f.name.trim(), products: ["magnex"], amount: f.amount, method: f.method, msg: "" }; msg = "💳 נשלח – רישיון MAGNEX קבוע ייחתם ויגיע אליו"; }
+      else if (k === "custsave") { cmd = { a: k, code, name: f.name.trim(), phone: f.phone, email: f.email, notes: f.notes }; msg = "💾 נשלח – הפרטים יישמרו"; }
+      else { cmd = { a: k, code, name: f.name.trim(), products: f.prods, amount: k === "addprod" ? f.amount : "", method: f.method, msg: k === "gift" ? f.msg.trim() : "" }; msg = k === "gift" ? "🎁 נשלח – המחשב יחתום וישלח לו" : "✅ נשלח – המחשב יחתום והרישיון יגיע אליו לבד"; }
+      PANEL[key] = null; delete PF[key];
+      send(cmd, msg);
     });
   });
   document.querySelectorAll("button.ext").forEach(b => armed(b, () => send({ a: "trialext", code: b.dataset.c, name: b.dataset.n, days: 14, left: +b.dataset.l || 0 }, "➕ נשלח – הניסיון יוארך ב-14 יום")));
@@ -198,13 +280,71 @@ function bindActs() {
   document.querySelectorAll("button.del").forEach(b => armed(b, () => send({ a: "delete", code: b.dataset.c, product: b.dataset.p, name: b.dataset.n }, "🗑 נשלח – הרישיון יושבת ויימחק מהרשימה")));
   document.querySelectorAll("button.psh").forEach(b => armed(b, () => send({ a: "push", code: b.dataset.c, name: b.dataset.n }, "📤 נשלח – הרישיונות יגיעו אליו שוב")));
 }
+// b111: 🎁 benefit codes – waiting requests (the script's pending with m=coupon + the iMac's list), active, stopped, ended
+const isCp = r => r.method === "coupon" || /^GFT-?\d{4}/i.test(String(r.payer || ""));
+function giftList() {
+  const G = (ST.snap?.gifts || []).slice(), P = ST.pending || [], pend = new Set(P.map(r => r.id)), have = new Set(G.map(g => g.rid).filter(Boolean));
+  const out = G.filter(g => g.state !== "waiting" || !g.rid || pend.has(g.rid));
+  P.filter(isCp).forEach(r => { if (!have.has(r.id)) out.push({ code: r.code, name: r.name || "", phone: r.phone || "", email: r.email || "", coupon: String(r.coupon || r.payer || "").toUpperCase(), reseller: "", state: "waiting", rid: r.id, items: [], until: "", daysLeft: 0, months: 6 }); });
+  const ord = { waiting: 0, active: 1, stopped: 2, ended: 3 };
+  return out.sort((a, b) => (ord[a.state] ?? 9) - (ord[b.state] ?? 9));
+}
+// the 'תוכנות' row: active = status, inactive = dashed "+ <product>" (only while the main license is active)
+function prodRow(key, code, its, mainOk, mainHtml, activeHtml) {
+  const have = its.map(x => x.p), solo = have.includes("booth-solo") && !have.includes("magnex") && !have.includes("gift") && !mainHtml;
+  const list = solo ? ["magnex"] : ADDONS.slice();
+  let h = mainHtml || "";
+  its.forEach(it => { if (it.p !== "gift" && it.p !== "?") h += activeHtml ? activeHtml(it) : `<span class="pb ${it.rev ? "off" : "on"}">${it.rev ? "⛔" : "✓"} ${esc(PS[it.p] || PN[it.p] || it.p)} · ${it.rev ? "מושבת" : "פעיל"}</span>`; });
+  list.filter(p => !have.includes(p)).forEach(p => { h += `<button class="pb add${PANEL[key] === "p:" + p ? " sel" : ""}" data-key="${esc(key)}" data-c="${esc(code)}" data-k="p:${p}" ${mainOk ? "" : "disabled"}>+ ${esc(PS[p] || p)}</button>`; });
+  return `<div class="prw"><div class="lb">תוכנות${mainOk ? "" : " · תוספים רק כשהרישיון הראשי פעיל"}</div><div class="pbs">${h}</div></div>`;
+}
+function giftCard(g) {
+  const key = "g:" + g.code, [stT, stC] = GST[g.state] || ["?", "e"];
+  const c = cmdFor(x => (g.rid && x.body?.rid === g.rid) || (x.body?.code === g.code && x.a !== "approve" && x.a !== "reject" && Date.now() - x.t < 600000));
+  const busy = c && (c.st === "new" || c.st === "run");
+  const when = g.state === "active" ? `עד <b>${esc(g.until)}</b> · נותרו <b>${+g.daysLeft || 0}</b> ימים`
+    : g.state === "stopped" ? `⏸ מוקפא · נותרו <b>${+g.daysLeft || 0}</b> ימים (יחזרו כשתחזיר)`
+    : g.state === "ended" ? `הסתיים ב-<b>${esc(g.until)}</b>`
+    : `באישור: MAGNEX ל-${!g.months || +g.months === 6 ? "חצי שנה" : esc(g.months) + " חודשים"}${g.until ? " · עד " + esc(g.until) : ""}`;
+  const w = tel(g.phone) ? `<a class="btn sm" href="https://wa.me/${esc(wa(g.phone))}" target="_blank">💬 WhatsApp</a>` : "";
+  let b = "";
+  if (!busy) {
+    if (g.state === "active") b = `<button class="sm gstop" data-c="${esc(g.code)}" data-n="${esc(g.name)}">⏸ עצור</button>`;
+    else if (g.state === "stopped") b = `<button class="sm grest" data-c="${esc(g.code)}" data-n="${esc(g.name)}">↩ החזר</button>`;
+    else if (g.state === "waiting") b = g.rid ? `<button class="pri gok" data-rid="${esc(g.rid)}" data-c="${esc(g.code)}" data-n="${esc(g.name)}" ${g.err ? "disabled" : ""}>✅ אשר</button><button class="sm grj" data-rid="${esc(g.rid)}" data-c="${esc(g.code)}">✖ דחה</button>`
+      : `<span class="mut">הבקשה הגיעה בוואטסאפ – מאשרים באיימק</span>`;
+    else if (g.state === "ended" && g.perm) b = `<span class="pb on">✓ כבר יש לו רישיון MAGNEX קבוע</span>`;
+    else if (g.state === "ended") b = `<button class="sm opn${PANEL[key] === "perm" ? " pri" : ""}" data-key="${esc(key)}" data-c="${esc(g.code)}" data-k="perm">💳 הפוך לרישיון קבוע</button>`;
+  }
+  const main = g.state === "waiting" ? "" : `<span class="pb ${g.state === "active" ? "gon" : g.state === "stopped" ? "wt" : "off"}">🎁 MAGNEX · ${g.state === "active" ? "עד " + esc(g.until) : g.state === "stopped" ? "מוקפא" : "הסתיים"}</span>`;
+  return `<div class="card gft${g.state === "ended" ? " end" : ""}" data-g="${esc(g.code)}">
+    <div class="row"><span class="gp">🎁 ${!g.months || +g.months === 6 ? "חצי שנה" : esc(g.months) + " חודשים"}</span><span class="stp ${stC}">${stT}</span></div>
+    <div class="nm" style="margin-top:6px">${esc(g.name || "—")}</div>
+    <div class="kv"><span>קוד הטבה</span><bdi class="cpc">${esc(g.coupon || "—")}</bdi><span>משווק</span><b>${esc(g.reseller || "—")}</b><span>מחשב</span><bdi class="code">${esc(g.code)}</bdi></div>
+    <div class="mut" style="margin-top:6px;font-size:13.5px">${when}</div>
+    ${g.err ? `<div class="warn">⚠ ${esc(g.err)}</div>` : ""}${(g.miss || []).length ? `<div class="warn">⚠ חסרים פרטים: ${esc(g.miss.join(", "))}</div>` : ""}
+    ${c ? stLine(c) : ""}
+    <div class="acts">${b}${w}</div>
+    ${g.state === "waiting" ? "" : prodRow(key, g.code, g.items || [], g.state === "active", main)}
+    ${panel(key, g.code, g.name, (g.items || []).map(x => x.p).concat(["magnex"]), g, true)}
+  </div>`;
+}
 function render() {
   if (!ST) return;
   const on = Date.now() - ST.hb < 120000;
   $("#dot").className = "dot " + (on ? "on" : "off");
   $("#hb").textContent = !ST.hb ? "מחשב הבעלים עוד לא התחבר" : on ? "מחשב הבעלים מחובר – פעולות מתבצעות מיד" : `אין מחשב בעלים מחובר מאז ${ago(ST.hb)} – פעולות יבוצעו כשהאיימק או המקבוק יחזרו לרשת`;
-  // pending requests
-  const P = ST.pending || [];
+  const S = ST.snap, q = $("#q").value.trim().toLowerCase().replace(/[\s-]/g, "");
+  const match = s => !q || String(s).toLowerCase().replace(/[\s-]/g, "").includes(q);
+  // pending requests (benefit-code requests go to the 🎁 rubric)
+  const P = (ST.pending || []).filter(r => !isCp(r));
+  const GL = giftList(), GM = {};
+  GL.forEach(g => { if (g.state !== "waiting" && !GM[g.code]) GM[g.code] = g; });
+  const T = (S?.trials || []);
+  // b111: status tiles
+  const tl = [["pH", "⏳", P.length, "ממתינות"], ["gH", "🎁", GL.length, "מתנות", "gft"], ["tH", "🕒", T.length, "בניסיון"], ["cH", "👥", (S?.customers || []).length, "לקוחות"]];
+  $("#tiles").innerHTML = tl.map(([to, ic, n, t, cl]) => `<div class="tile${cl ? " " + cl : ""}" data-to="${to}"><b>${n}</b><span>${ic} ${t}</span></div>`).join("");
+  $("#tiles").querySelectorAll(".tile").forEach(x => x.onclick = () => { const h = $("#" + x.dataset.to); if (h && !h.hidden) h.scrollIntoView({ behavior: "smooth", block: "start" }); });
   $("#pH").textContent = `בקשות ממתינות${P.length ? " · " + P.length : ""}`;
   $("#pend").innerHTML = P.length ? P.map(r => {
     const c = cmdFor(x => (x.a === "approve" || x.a === "reject") && x.body?.rid === r.id);
@@ -232,47 +372,62 @@ function render() {
     });
     armed(card.querySelector(".rj"), () => send({ a: "reject", rid: id, code: r.code, msg: "" }, "הבקשה נדחתה"));
   });
+  // b111: 🎁 benefit codes – its own rubric (the same customers may also be in the regular list)
+  const G = GL.filter(g => match(g.name + g.code + (g.phone || "") + (g.email || "") + (g.coupon || "") + (g.reseller || "")));
+  $("#gH").textContent = `🎁 רישיונות מתנה · קוד הטבה${GL.length ? " · " + GL.length : ""}`;
+  $("#gift").innerHTML = G.length ? G.map(giftCard).join("") : `<div class="empty">${GL.length ? "לא נמצא" : S ? "אין עדיין רישיונות מתנה" : ""}</div>`;
+  $("#gift").querySelectorAll("button.gstop").forEach(b => armed(b, () => send({ a: "revoke", code: b.dataset.c, product: "gift", name: b.dataset.n, reason: "מהטלפון" }, "⏸ נשלח לאיימק – ההטבה תיעצר והימים יוקפאו")));
+  $("#gift").querySelectorAll("button.grest").forEach(b => armed(b, () => send({ a: "restore", code: b.dataset.c, product: "gift", name: b.dataset.n }, "↩ נשלח לאיימק – ההטבה תוחזר לימים שנשארו")));
+  $("#gift").querySelectorAll("button.gok").forEach(b => armed(b, () => send({ a: "approve", rid: b.dataset.rid, code: b.dataset.c, name: b.dataset.n, products: ["magnex"] }, "✅ נשלח לאיימק – MAGNEX לחצי שנה מהאישור")));
+  $("#gift").querySelectorAll("button.grj").forEach(b => armed(b, () => send({ a: "reject", rid: b.dataset.rid, code: b.dataset.c, msg: "" }, "הבקשה נדחתה")));
   // customers (from the iMac's last snapshot)
-  const S = ST.snap, q = $("#q").value.trim().toLowerCase().replace(/[\s-]/g, "");
   $("#snapT").textContent = S ? `רשימת הלקוחות עודכנה מהאיימק ${ago(S.t)}` : "רשימת הלקוחות תופיע אחרי שהאיימק יתחבר";
-  const L = (S?.customers || []).filter(c => !q || (c.name + c.code + (c.phone || "") + (c.email || "")).toLowerCase().replace(/[\s-]/g, "").includes(q));
+  const L = (S?.customers || []).filter(c => match(c.name + c.code + (c.phone || "") + (c.email || "") + (GM[c.code] ? GM[c.code].coupon + GM[c.code].reseller : "")));
   $("#cH").textContent = `לקוחות${S ? " · " + (S.customers || []).length : ""}`;
   $("#cust").innerHTML = L.length ? L.map((c, i) => {
-    const chips = (c.items || []).map(it => {
+    const gm = GM[c.code];
+    const chip = it => {
       const pc = cmdFor(x => (x.a === "revoke" || x.a === "restore") && x.body?.code === c.code && x.body?.product === it.p && (x.st === "new" || x.st === "run"));
       if (pc) return `<span class="pc wait">⏳ ${PN[it.p] || it.p} · ${pc.a === "revoke" ? "משבית…" : "מחזיר…"}</span>`;
+      if (it.p === "gift") {   // b111: ⏸ / ↩ of the benefit code (the 🎁 tab's stop / resume on the iMac)
+        if (gm && gm.state === "ended") return `<span class="pc rv">🎁 MAGNEX · ההטבה הסתיימה</span>`;
+        return it.rev ? `<span class="pc rv">⏸ ${PN.gift} · נעצר <button class="sm ghost rs" data-i="${i}" data-p="gift">↩ החזר</button></span>`
+          : `<span class="pc gft">🎁 MAGNEX · עד ${esc(gm?.until || "")} <button class="sm ghost rv" data-i="${i}" data-p="gift">⏸ עצור</button></span>`;
+      }
       return it.rev ? `<span class="pc rv">⛔ ${PN[it.p] || it.p} · מושבת <button class="sm ghost rs" data-i="${i}" data-p="${it.p}">↩ החזר</button></span>`
         : `<span class="pc ok">✓ ${PN[it.p] || it.p} · שולם <button class="sm ghost rv" data-i="${i}" data-p="${it.p}">⛔ השבת</button></span>`;
-    }).join("");
+    };
+    const its = c.items || [];
+    const mainOk = its.some(x => ["magnex", "booth-solo", "owner"].includes(x.p) && !x.rev) || (its.some(x => x.p === "gift" && !x.rev) && gm && gm.state === "active");
+    const gchip = its.find(x => x.p === "gift");
     const last = cmdFor(x => x.body?.code === c.code && x.a !== "approve" && x.a !== "reject" && Date.now() - x.t < 600000);
     const open = OPEN.has(c.code);
     return `<div class="card">
-      <div class="row det-b" data-c="${esc(c.code)}" style="cursor:pointer"><span class="nm" style="flex:1">${esc(c.name || "—")}</span><button class="sm">${open ? "▲ סגור" : "👤 פרטים"}</button></div>
+      <div class="row det-b" data-c="${esc(c.code)}" style="cursor:pointer"><span class="nm" style="flex:1">${esc(c.name || "—")}</span>${gm ? `<span class="gp">🎁</span>` : ""}<button class="sm">${open ? "▲ סגור" : "👤 פרטים"}</button></div>
       ${open ? `<div class="code">${esc(c.code)}</div>
-      <div class="chips">${chips}</div>${last ? stLine(last) : ""}
-      ${actBar(c.code)}${panel(c.code, c.name, (c.items || []).map(x => x.p), c)}
+      ${prodRow(c.code, c.code, its.filter(x => x.p !== "gift"), mainOk, gchip ? chip(gchip) : "", chip)}${last ? stLine(last) : ""}
+      ${actBar(c.code, c.code)}${panel(c.code, c.code, c.name, its.map(x => x.p), c, false)}
       <div class="det">${contact(c.phone, c.email) || `<div class="mut">אין טלפון או מייל שמורים</div>`}
         <div class="mut" style="margin:10px 0 4px">רכישות</div>
         ${(c.buys || []).map(b => `<div class="buy"><span class="mut">${esc(b.date)}</span><span style="flex:1">${(b.prods || []).map(p => PN[p] || p).join(" + ")}</span><b>${esc(b.amount)} ₪</b><span class="mut">${esc(PAYN[b.method] || "לא צוין")}</span></div>`).join("") || `<div class="mut">אין רכישות רשומות</div>`}
         ${c.notes ? `<div class="mut" style="margin-top:8px">הערות: ${esc(c.notes)}</div>` : ""}
-        <div class="acts">${(c.items || []).map(it => `<button class="sm del" data-c="${esc(c.code)}" data-p="${it.p}" data-n="${esc(c.name)}">🗑 מחק ${PN[it.p] || it.p}</button>`).join("")}<button class="sm psh" data-c="${esc(c.code)}" data-n="${esc(c.name)}">📤 שלח לו שוב את הרישיונות</button></div></div>` : ""}
+        <div class="acts">${its.filter(it => it.p !== "gift").map(it => `<button class="sm del" data-c="${esc(c.code)}" data-p="${it.p}" data-n="${esc(c.name)}">🗑 מחק ${PN[it.p] || it.p}</button>`).join("")}<button class="sm psh" data-c="${esc(c.code)}" data-n="${esc(c.name)}">📤 שלח לו שוב את הרישיונות</button></div></div>` : ""}
     </div>`;
   }).join("") : `<div class="empty">${S ? "לא נמצא" : ""}</div>`;
-  const T = (S?.trials || []);
   $("#tH").hidden = !T.length; $("#tH").textContent = `🕒 בתקופת ניסיון · ${T.length}`;
   // b150: the days count down here too – the customer's MAGNEX reports only when it is open and online
   T.forEach(t => { if (t.st === "trial") { t.days = Math.max(0, (+t.days || 0) - Math.floor((Date.now() - (+t.last || Date.now())) / 86400000)); if (!t.days) t.st = "expired"; } });
   $("#trial").innerHTML = T.map(t => { const open = OPEN.has("t:" + t.code); return `<div class="card"><div class="row det-b" data-c="t:${esc(t.code)}" style="cursor:pointer"><span class="nm" style="flex:1">${esc(t.name || (t.app === "booth-solo" ? "MAGNEX Booth Station" : "MAGNEX"))}</span><span class="pc ${t.st === "trial" ? "wait" : "rv"}">${t.st === "trial" ? `🕒 נותרו ${t.days} ימים` : "הניסיון נגמר"}</span><button class="sm">${open ? "▲ סגור" : "👤 פרטים"}</button></div>
     ${open ? `<div class="code">${esc(t.code)}</div><div class="mut">${t.app === "booth-solo" ? "MAGNEX Booth Station" : "MAGNEX"} ${esc(t.ver)} · הותקן ${new Date(t.first).toLocaleDateString("he-IL")} · נראה ${ago(t.last)}</div>${contact(t.phone, t.email)}
     ${(() => { const l = cmdFor(x => x.body?.code === t.code && Date.now() - x.t < 600000); return l ? stLine(l) : ""; })()}
-    <div class="acts"><button class="sm ext" data-c="${esc(t.code)}" data-n="${esc(t.name || "")}" data-l="${t.st === "trial" ? +t.days || 0 : 0}">➕ עוד 14 יום ניסיון</button><button class="sm opn" data-c="${esc(t.code)}" data-k="addprod">💳 הפעל – שילם</button><button class="sm opn" data-c="${esc(t.code)}" data-k="gift">🎁 הפעל במתנה</button><button class="sm ghost fgt" data-c="${esc(t.code)}">🙈 הסתר</button></div>
-    ${panel(t.code, t.name || "", [], t)}` : ""}</div>`; }).join("");
+    <div class="acts"><button class="sm ext" data-c="${esc(t.code)}" data-n="${esc(t.name || "")}" data-l="${t.st === "trial" ? +t.days || 0 : 0}">➕ עוד 14 יום ניסיון</button><button class="sm opn" data-key="${esc(t.code)}" data-c="${esc(t.code)}" data-k="addprod">💳 הפעל – שילם</button><button class="sm opn" data-key="${esc(t.code)}" data-c="${esc(t.code)}" data-k="gift">🎁 הפעל במתנה</button><button class="sm ghost fgt" data-c="${esc(t.code)}">🙈 הסתר</button></div>
+    ${panel(t.code, t.code, t.name || "", [], t, false)}` : ""}</div>`; }).join("");
   $("#trial").querySelectorAll(".det-b").forEach(b => b.onclick = (ev) => { if (ev.target.closest(".pnl,.acts,a,input,textarea,select")) return; const k = b.dataset.c; OPEN.has(k) ? OPEN.delete(k) : OPEN.add(k); render(); });   // trials fold like the customers
-  $("#cust").querySelectorAll(".det-b").forEach(b => b.onclick = (ev) => { if (ev.target.closest(".pnl,.acts,.chips,a,input,textarea,select")) return; const k = b.dataset.c; OPEN.has(k) ? OPEN.delete(k) : OPEN.add(k); render(); });
+  $("#cust").querySelectorAll(".det-b").forEach(b => b.onclick = (ev) => { if (ev.target.closest(".pnl,.acts,.chips,.prw,a,input,textarea,select")) return; const k = b.dataset.c; OPEN.has(k) ? OPEN.delete(k) : OPEN.add(k); render(); });
   bindActs();
   $("#cust").querySelectorAll("button.rv,button.rs").forEach(b => {
     const c = L[+b.dataset.i], p = b.dataset.p, on = b.classList.contains("rv");
-    armed(b, () => send({ a: on ? "revoke" : "restore", code: c.code, product: p, name: c.name, reason: "מהטלפון" }, on ? "⛔ נשלח לאיימק – הרישיון יושבת" : "↩ נשלח לאיימק – הרישיון יוחזר"));
+    armed(b, () => send({ a: on ? "revoke" : "restore", code: c.code, product: p, name: c.name, reason: "מהטלפון" }, p === "gift" ? (on ? "⏸ נשלח לאיימק – ההטבה תיעצר" : "↩ נשלח לאיימק – ההטבה תוחזר") : on ? "⛔ נשלח לאיימק – הרישיון יושבת" : "↩ נשלח לאיימק – הרישיון יוחזר"));
   });
 }
 async function load() {
@@ -287,6 +442,22 @@ async function load() {
   } catch (e) { $("#hb").textContent = "אין חיבור לאינטרנט"; $("#dot").className = "dot off"; }
   finally { $("#rf").textContent = "🔄"; }
 }
+// b111: day / night (drag or tap, like the computer app) – default dark, kept in localStorage
+function thmSet(day, save) {
+  document.documentElement.classList.toggle("day", day);
+  const b = $("#thmTgl"); b.classList.toggle("day", day); b.setAttribute("aria-checked", day ? "false" : "true");
+  const m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = day ? "#f3f5fa" : "#14121a";
+  if (save) { try { localStorage.setItem("mxadm_thm", day ? "light" : "dark"); } catch (e) { } }
+}
+(function () {
+  const b = $("#thmTgl"), kb = b.querySelector(".thm-knob"), MAX = 28, isDay = () => document.documentElement.classList.contains("day"); let st = null;
+  b.addEventListener("pointerdown", e => { st = { x: e.clientX, k0: isDay() ? 0 : MAX, k: null }; try { b.setPointerCapture(e.pointerId); } catch (x) { } });
+  b.addEventListener("pointermove", e => { if (!st) return; const dx = e.clientX - st.x; if (st.k == null && Math.abs(dx) < 3) return; b.classList.add("drag"); st.k = Math.max(0, Math.min(MAX, st.k0 + dx)); kb.style.transform = `translateX(${st.k}px)`; });
+  const end = () => { if (!st) return; const s2 = st; st = null; b.classList.remove("drag"); kb.style.transform = ""; thmSet(s2.k == null ? !isDay() : !(s2.k > MAX / 2), true); };
+  b.addEventListener("pointerup", end); b.addEventListener("pointercancel", () => { st = null; b.classList.remove("drag"); kb.style.transform = ""; });
+  b.addEventListener("keydown", e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); thmSet(!isDay(), true); } });
+  thmSet(isDay(), false);
+})();
 $("#rf").onclick = load;
 $("#q").oninput = render;
 document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
